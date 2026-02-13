@@ -14,6 +14,9 @@
 #include <vid_drv.h>
 #include <nofrendo.h>
 
+#pragma GCC optimize("O3")
+#pragma GCC optimize("unroll-loops")
+
 
 #define  NES_CLOCK_DIVIDER    12
 //#define  NES_MASTER_CLOCK     21477272.727272727272
@@ -23,17 +26,15 @@
 
 #define  NES_RAMSIZE          0x800
 
-#define  NES_SKIP_LIMIT       (NES_REFRESH_RATE / 5)   /* 12 or 10, depending on PAL/NTSC */
+#define  NES_SKIP_LIMIT       (NES_REFRESH_RATE / 5)  
 
 static nes_t nes;
-
-/* find out if a file is ours */
+ 
 int nes_isourfile(const char *filename)
 {
    return rom_checkmagic(filename);
 }
-
-/* TODO: just asking for problems -- please remove */
+ 
 nes_t *nes_getcontextptr(void)
 {
    return &nes;
@@ -72,22 +73,18 @@ static void ram_write(uint32 address, uint8 value)
 }
 
 static void write_protect(uint32 address, uint8 value)
-{
-   /* don't allow write to go through */
+{ 
    UNUSED(address);
    UNUSED(value);
 }
 
 static uint8 read_protect(uint32 address)
-{
-   /* don't allow read to go through */
-   UNUSED(address);
-
+{ 
+   UNUSED(address); 
    return 0xFF;
 }
 
-#define  LAST_MEMORY_HANDLER  { -1, -1, NULL }
-/* read/write handlers for standard NES */
+#define  LAST_MEMORY_HANDLER  { -1, -1, NULL } 
 static nes6502_memread default_readhandler[] =
 {
    { 0x0800, 0x1FFF, ram_read },
@@ -106,8 +103,7 @@ static nes6502_memwrite default_writehandler[] =
    { 0x4014, 0x4017, ppu_writehigh },
    LAST_MEMORY_HANDLER
 };
-
-/* this big nasty boy sets up the address handlers that the CPU uses */
+ 
 static void build_address_handlers(nes_t *machine)
 {
    int count, num_handlers = 0;
@@ -154,8 +150,7 @@ static void build_address_handlers(nes_t *machine)
                 sizeof(nes6502_memread));
       }
    }
-
-   /* TODO: poof! numbers */
+ 
    machine->readhandler[num_handlers].min_range = 0x4018;
    machine->readhandler[num_handlers].max_range = 0x5FFF;
    machine->readhandler[num_handlers].read_func = read_protect;
@@ -203,9 +198,7 @@ static void build_address_handlers(nes_t *machine)
                 sizeof(nes6502_memwrite));
       }
    }
-
-   /* catch-all for bad writes */
-   /* TODO: poof! numbers */
+ 
    machine->writehandler[num_handlers].min_range = 0x4018;
    machine->writehandler[num_handlers].max_range = 0x5FFF;
    machine->writehandler[num_handlers].write_func = write_protect;
@@ -220,14 +213,13 @@ static void build_address_handlers(nes_t *machine)
    num_handlers++;
    ASSERT(num_handlers <= MAX_MEM_HANDLERS);
 }
-
-/* raise an IRQ */
+ 
 void nes_irq(void)
 {
 #ifdef NOFRENDO_DEBUG
 //   if (nes.scanline <= NES_SCREEN_HEIGHT)
 //      memset(nes.vidbuf->line[nes.scanline - 1], GUI_RED, NES_SCREEN_WIDTH);
-#endif /* NOFRENDO_DEBUG */
+#endif 
 
    nes6502_irq();
 }
@@ -280,8 +272,7 @@ static void nes_renderframe(bool draw_flag)
 		ppu_scanline(vid_getbuffer(), nes.scanline, draw_flag);
 
       if (241 == nes.scanline)
-      {
-         /* 7-9 cycle delay between when VINT flag goes up and NMI is taken */
+      { 
          elapsed_cycles = nes6502_execute(7);
          nes.scanline_cycles -= elapsed_cycles;
          nes_checkfiq(elapsed_cycles);
@@ -309,29 +300,21 @@ static void nes_renderframe(bool draw_flag)
 }
 
 static void system_video(bool draw)
-{
-   /* TODO: hack */
+{ 
    if (false == draw)
    {
       gui_frame(false);
       return;
    }
-
-   /* blit the NES screen to our video surface */
+ 
 //   vid_blit(nes.vidbuf, 0, (NES_SCREEN_HEIGHT - NES_VISIBLE_HEIGHT) / 2,
 //            0, 0, NES_SCREEN_WIDTH, NES_VISIBLE_HEIGHT);
-
-   /* overlay our GUI on top of it */
-   gui_frame(true);
-
-   /* blit to screen */
-   vid_flush();
-
-   /* grab input */
+ 
+   gui_frame(true); 
+   vid_flush(); 
    osd_getinput();
 }
-
-/* main emulation loop */
+ 
 void nes_emulate(void)
 {
    int last_ticks, frames_to_render;
@@ -355,8 +338,7 @@ void nes_emulate(void)
       }
 
       if (true == nes.pause)
-      {
-         /* TODO: dim the screen, and pause/silence the apu */
+      { 
          system_video(true);
          frames_to_render = 0;
       }
@@ -383,8 +365,7 @@ static void mem_trash(uint8 *buffer, int length)
    for (i = 0; i < length; i++)
       buffer[i] = (uint8) rand();
 }
-
-/* Reset NES hardware */
+ 
 void nes_reset(int reset_type)
 {
    if (HARD_RESET == reset_type)
@@ -435,30 +416,25 @@ void nes_togglepause(void)
 {
    nes.pause ^= true;
 }
-
-/* insert a cart into the NES */
+ 
 int nes_insertcart(const char *filename, nes_t *machine)
 {
    nes6502_setcontext(machine->cpu);
-
-   /* rom file */
+ 
    machine->rominfo = rom_load(filename);
    if (NULL == machine->rominfo)
       goto _fail;
-
-   /* map cart's SRAM to CPU $6000-$7FFF */
+ 
    if (machine->rominfo->sram)
    {
       machine->cpu->mem_page[6] = machine->rominfo->sram;
       machine->cpu->mem_page[7] = machine->rominfo->sram + 0x1000;
    }
-
-   /* mapper */
+ 
    machine->mmc = mmc_create(machine->rominfo);
    if (NULL == machine->mmc)
       goto _fail;
-
-   /* if there's VRAM, let the PPU know */
+ 
    if (NULL != machine->rominfo->vram)
       machine->ppu->vram_present = true;
    
@@ -475,9 +451,7 @@ _fail:
    nes_destroy(&machine);
    return -1;
 }
-
-
-/* Initialize NES CPU, hardware, etc. */
+ 
 nes_t *nes_create(void)
 {
    nes_t *machine;
@@ -489,46 +463,36 @@ nes_t *nes_create(void)
       return NULL;
 
    memset(machine, 0, sizeof(nes_t));
-
-   /* bitmap */
-   /* 8 pixel overdraw */
+ 
 //   machine->vidbuf = bmp_create(NES_SCREEN_WIDTH, NES_SCREEN_HEIGHT, 8);
 //   if (NULL == machine->vidbuf)
 //      goto _fail;
 
-   machine->autoframeskip = true;
-
-   /* cpu */
+   machine->autoframeskip = true; 
    machine->cpu = malloc(sizeof(nes6502_context));
    if (NULL == machine->cpu)
       goto _fail;
 
    memset(machine->cpu, 0, sizeof(nes6502_context));
-   
-   /* allocate 2kB RAM */
+    
    machine->cpu->mem_page[0] = malloc(NES_RAMSIZE);
    if (NULL == machine->cpu->mem_page[0])
-      goto _fail;
-
-   /* point all pages at NULL for now */
+      goto _fail; 
    for (i = 1; i < NES6502_NUMBANKS; i++)
       machine->cpu->mem_page[i] = NULL;
 
    machine->cpu->read_handler = machine->readhandler;
    machine->cpu->write_handler = machine->writehandler;
-
-   /* apu */
+ 
    osd_getsoundinfo(&osd_sound);
    machine->apu = apu_create(0, osd_sound.sample_rate, NES_REFRESH_RATE, osd_sound.bps);
 
    if (NULL == machine->apu)
       goto _fail;
-
-   /* set the IRQ routines */
+ 
    machine->apu->irq_callback = nes_irq;
    machine->apu->irqclear_callback = nes_clearfiq;
-
-   /* ppu */
+ 
    machine->ppu = ppu_create();
    if (NULL == machine->ppu)
       goto _fail;
