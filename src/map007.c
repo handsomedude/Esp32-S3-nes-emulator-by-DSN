@@ -2,8 +2,7 @@
 #include "nes_mmc.h"
 #include "nes_ppu.h"
 #include "log.h"
-
-/* mapper 7: AOROM */
+ 
 static void map7_write(uint32 address, uint8 value)
 {
    int mirror;
