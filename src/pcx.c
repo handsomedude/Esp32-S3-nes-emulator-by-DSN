@@ -4,8 +4,7 @@
 #include "noftypes.h"
 #include "bitmap.h"
 #include "pcx.h"
-
-/* Save a PCX snapshot from a given NES bitmap */
+ 
 int pcx_write(char *filename, bitmap_t *bmp, rgb_t *pal)
 {
    FILE *fp;
@@ -23,8 +22,7 @@ int pcx_write(char *filename, bitmap_t *bmp, rgb_t *pal)
    fp = fopen(filename, "wb");
    if (NULL == fp)
       return -1;
-
-   /* Fill in the header nonsense */
+ 
    memset(&header, 0, sizeof(header));
 
    header.Manufacturer = 10;
@@ -42,8 +40,7 @@ int pcx_write(char *filename, bitmap_t *bmp, rgb_t *pal)
    header.VscreenSize = height - 1;
 
    fwrite(&header, 1, sizeof(header), fp);
-
-   /* RLE encoding */
+ 
    for (line = 0; line < height; line++)
    {
       uint8 last, *mem;
@@ -73,17 +70,15 @@ int pcx_write(char *filename, bitmap_t *bmp, rgb_t *pal)
          }
       }
    }
-
-   /* Write palette */
-   fputc(0x0C, fp); /* $0C signifies 256 color palette */
+ 
+   fputc(0x0C, fp);  
    for (i = 0; i < 256; i++)
    {
       fputc(pal[i].r, fp);
       fputc(pal[i].g, fp);
       fputc(pal[i].b, fp);
    }
-
-   /* We're done! */
+ 
    fclose(fp);
    return 0;
 }
