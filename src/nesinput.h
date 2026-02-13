@@ -1,7 +1,6 @@
 #ifndef _NESINPUT_H_
 #define _NESINPUT_H_
-
-/* NES control pad bitmasks */
+ 
 #define  INP_PAD_A         0x01
 #define  INP_PAD_B         0x02
 #define  INP_PAD_SELECT    0x04
@@ -22,8 +21,7 @@
 #define  INP_ARKANOID      0x0010
 #define  INP_VSDIPSW0      0x0020
 #define  INP_VSDIPSW1      0x0040
-
-/* upper byte is what's returned in D4, lower is D3 */
+ 
 #define  INP_PPAD_1        0x0002
 #define  INP_PPAD_2        0x0001
 #define  INP_PPAD_3        0x0200
