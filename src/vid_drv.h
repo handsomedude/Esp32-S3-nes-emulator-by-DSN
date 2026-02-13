@@ -4,31 +4,20 @@
 #include "bitmap.h"
 
 typedef struct viddriver_s
-{
-   /* name of driver */
-   const char *name;
-   /* init function - return 0 on success, nonzero on failure */
-   int (*init)(int width, int height);
-   /* clean up after driver (can be NULL) */
-   void (*shutdown)(void);
-   /* set a video mode - return 0 on success, nonzero on failure */
-   int (*set_mode)(int width, int height);
-   /* set up a palette */
-   void (*set_palette)(rgb_t *palette);
-   /* custom bitmap clear (can be NULL) */
-   void (*clear)(uint8 color);
-   /* lock surface for writing (required) */
-   bitmap_t *(*lock_write)(void);
-   /* free a locked surface (can be NULL) */
-   void (*free_write)(int num_dirties, rect_t *dirty_rects);
-   /* custom blitter - num_dirties == -1 if full blit required */
+{ 
+   const char *name; 
+   int (*init)(int width, int height); 
+   void (*shutdown)(void); 
+   int (*set_mode)(int width, int height); 
+   void (*set_palette)(rgb_t *palette); 
+   void (*clear)(uint8 color); 
+   bitmap_t *(*lock_write)(void); 
+   void (*free_write)(int num_dirties, rect_t *dirty_rects); 
    void (*custom_blit)(bitmap_t *primary, int num_dirties,
-                       rect_t *dirty_rects);
-   /* immediately invalidate the buffer, i.e. full redraw */
+                       rect_t *dirty_rects); 
    bool invalidate;
 } viddriver_t;
-
-/* TODO: filth */
+ 
 extern bitmap_t *vid_getbuffer(void);
 
 extern int vid_init(int width, int height, viddriver_t *osd_driver);
