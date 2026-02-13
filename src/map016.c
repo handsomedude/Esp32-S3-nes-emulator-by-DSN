@@ -8,9 +8,7 @@ static struct
    int counter;
    bool enabled;
 } irq;
-
-/* mapper 16: Bandai */
-
+ 
 static void map16_init(void)
 {
    mmc_bankrom(16, 0x8000, 0);
@@ -39,11 +37,11 @@ static void map16_write(uint32 address, uint8 value)
          switch (value & 3)
          {
          case 0:
-            ppu_mirror(0, 0, 1, 1); /* horizontal */
+            ppu_mirror(0, 0, 1, 1);  
             break;
 
          case 1:
-            ppu_mirror(0, 1, 0, 1); /* vertical */
+            ppu_mirror(0, 1, 0, 1);
             break;
 
          case 2:
@@ -68,8 +66,7 @@ static void map16_write(uint32 address, uint8 value)
          irq.counter = (value << 8) | (irq.counter & 0xFF);
          break;
 
-      case 0xD:
-         /* eeprom I/O port? */
+      case 0xD: 
          break;
       }
    }
