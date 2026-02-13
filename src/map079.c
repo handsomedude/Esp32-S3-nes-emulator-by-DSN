@@ -1,7 +1,6 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
-
-/* mapper 79: NINA-03/06 */
+ 
 static void map79_write(uint32 address, uint8 value)
 {
    if ((address & 0x5100) == 0x4100)
@@ -19,7 +18,7 @@ static void map79_init(void)
 
 static map_memwrite map79_memwrite[] =
     {
-        {0x4100, 0x5FFF, map79_write}, /* ????? incorrect range ??? */
+        {0x4100, 0x5FFF, map79_write}, 
         {-1, -1, NULL}};
 
 mapintf_t map79_intf =
