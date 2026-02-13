@@ -1,8 +1,6 @@
 #ifndef _GUI_H_
 #define _GUI_H_
 
-/* GUI colors - the last 64 of a 256-color palette */
-
 #define GUI_FIRSTENTRY 192
 
 enum
@@ -25,8 +23,7 @@ enum
 };
 
 #define GUI_TOTALCOLORS (GUI_LASTENTRY - GUI_FIRSTENTRY)
-
-/* TODO: bleh */
+ 
 #include "bitmap.h"
 extern rgb_t gui_pal[GUI_TOTALCOLORS];
 
