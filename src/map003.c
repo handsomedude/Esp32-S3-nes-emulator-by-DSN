@@ -1,7 +1,6 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
-
-/* mapper 3: CNROM */
+ 
 static void map3_write(uint32 address, uint8 value)
 {
    UNUSED(address);
