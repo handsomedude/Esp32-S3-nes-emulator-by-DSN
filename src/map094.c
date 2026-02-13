@@ -1,12 +1,9 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
-
-/* mapper 94: Senjou no Ookami */
+ 
 static void map94_write(uint32 address, uint8 value)
 {
-   UNUSED(address);
-
-   /* ($8000-$FFFF) D7-D2 = switch $8000-$BFFF */
+   UNUSED(address); 
    mmc_bankrom(16, 0x8000, value >> 2);
 }
 
