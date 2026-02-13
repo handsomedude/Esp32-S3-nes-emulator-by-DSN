@@ -9,8 +9,7 @@ static struct
    int wait_state;
    bool enabled;
 } irq;
-
-/* mapper 85: Konami VRC7 */
+ 
 static void map85_write(uint32 address, uint8 value)
 {
    uint8 bank = address >> 12;
@@ -25,8 +24,7 @@ static void map85_write(uint32 address, uint8 value)
          mmc_bankrom(8, 0x8000, value);
       break;
 
-   case 0x09:
-      /* 0x10 & 0x30 should be trapped by sound emulation */
+   case 0x09: 
       mmc_bankrom(8, 0xC000, value);
       break;
 
@@ -68,11 +66,11 @@ static void map85_write(uint32 address, uint8 value)
          switch (value & 3)
          {
          case 0:
-            ppu_mirror(0, 1, 0, 1); /* vertical */
+            ppu_mirror(0, 1, 0, 1); 
             break;
 
          case 1:
-            ppu_mirror(0, 0, 1, 1); /* horizontal */
+            ppu_mirror(0, 0, 1, 1);  
             break;
 
          case 2:
@@ -103,7 +101,7 @@ static void map85_write(uint32 address, uint8 value)
    default:
 #ifdef NOFRENDO_DEBUG
       nofrendo_log_printf("unhandled vrc7 write: $%02X to $%04X\n", value, address);
-#endif /* NOFRENDO_DEBUG */
+#endif 
       break;
    }
 }
