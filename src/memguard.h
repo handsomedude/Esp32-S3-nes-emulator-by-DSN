@@ -11,11 +11,13 @@
 #define mem_term()
  
 void *mem_alloc(int size, bool prefer_fast_memory);
-void mem_free(void *ptr);
-void *mem_calloc(int nmemb, int size, bool prefer_fast_memory);
+extern void nes_mem_free(void *ptr);
+extern void *nes_mem_calloc(size_t nmemb, size_t size);
+extern void *nes_mem_malloc(size_t size);
  
-#define NOFRENDO_MALLOC(s) mem_alloc(s, false)
-#define NOFRENDO_FREE(p)   mem_free(p)
+#define NOFRENDO_MALLOC(x)  nes_mem_malloc(x)
+#define NOFRENDO_CALLOC(x,y) nes_mem_calloc(x,y)
+#define NOFRENDO_FREE(x)   nes_mem_free(x)
 #define NOFRENDO_STRDUP(s) strdup(s)
 
 #ifdef __cplusplus
