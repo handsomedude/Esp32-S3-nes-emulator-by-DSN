@@ -1,7 +1,6 @@
 #include <noftypes.h>
 #include <nes_mmc.h>
-
-/* mapper interfaces */
+ 
 extern mapintf_t map0_intf;
 extern mapintf_t map1_intf;
 extern mapintf_t map2_intf;
@@ -36,8 +35,7 @@ extern mapintf_t map85_intf;
 extern mapintf_t map94_intf;
 extern mapintf_t map99_intf;
 extern mapintf_t map231_intf;
-
-/* implemented mapper interfaces */
+ 
 const mapintf_t *mappers[] =
 {
    &map0_intf,
