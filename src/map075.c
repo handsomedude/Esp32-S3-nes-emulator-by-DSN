@@ -4,8 +4,7 @@
 
 static uint8 latch[2];
 static uint8 hibits;
-
-/* mapper 75: Konami VRC1 */
+ 
 static void map75_write(uint32 address, uint8 value)
 {
    switch ((address & 0xF000) >> 12)
@@ -21,9 +20,9 @@ static void map75_write(uint32 address, uint8 value)
       mmc_bankvrom(4, 0x1000, ((hibits & 0x04) << 2) | latch[1]);
 
       if (value & 1)
-         ppu_mirror(0, 1, 0, 1); /* vert */
+         ppu_mirror(0, 1, 0, 1);  
       else
-         ppu_mirror(0, 0, 1, 1); /* horiz */
+         ppu_mirror(0, 0, 1, 1);  
 
       break;
 
