@@ -16,14 +16,10 @@ typedef enum
 #define  ROM_FLAG_VERSUS      0x08
 
 typedef struct rominfo_s
-{
-   /* pointers to ROM and VROM */
-   uint8 *rom, *vrom;
-
-   /* pointers to SRAM and VRAM */
+{ 
+   uint8 *rom, *vrom; 
    uint8 *sram, *vram;
-
-   /* number of banks */
+ 
    int rom_banks, vrom_banks;
    int sram_banks, vram_banks;
 
