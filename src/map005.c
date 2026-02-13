@@ -9,8 +9,7 @@ static struct
    int counter, enabled;
    int reset, latch;
 } irq;
-
-/* MMC5 - Castlevania III, etc */
+ 
 static void map5_hblank(int vblank)
 {
    UNUSED(vblank);
@@ -31,16 +30,13 @@ static void map5_hblank(int vblank)
 static void map5_write(uint32 address, uint8 value)
 {
    static int page_size = 8;
-
-   /* ex-ram memory-- bleh! */
+ 
    if (address >= 0x5C00 && address <= 0x5FFF)
       return;
 
    switch (address)
    {
-   case 0x5100:
-      /* PRG page size setting */
-      /* 0:32k 1:16k 2,3:8k */
+   case 0x5100: 
       switch (value & 3)
       {
       case 0:
@@ -58,33 +54,21 @@ static void map5_write(uint32 address, uint8 value)
       }
       break;
 
-   case 0x5101:
-      /* CHR page size setting */
-      /* 0:8k 1:4k 2:2k 3:1k */
+   case 0x5101: 
       break;
 
-   case 0x5104:
-      /* GFX mode setting */
-      /*
-      00:split mode
-      01:split & exgraffix
-      10:ex-ram
-      11:exram + write protect
-      */
+   case 0x5104: 
       break;
 
-   case 0x5105:
-      /* TODO: exram needs to fill in nametables 2-3 */
+   case 0x5105: 
       ppu_mirror(value & 3, (value >> 2) & 3, (value >> 4) & 3, value >> 6);
       break;
 
    case 0x5106:
-   case 0x5107:
-      /* ex-ram fill mode stuff */
+   case 0x5107: 
       break;
 
-   case 0x5113:
-      /* ram page for $6000-7FFF? bit 2*/
+   case 0x5113: 
       break;
 
    case 0x5114:
@@ -139,8 +123,7 @@ static void map5_write(uint32 address, uint8 value)
    case 0x5124:
    case 0x5125:
    case 0x5126:
-   case 0x5127:
-      /* more VROM shit? */
+   case 0x5127: 
       break;
 
    case 0x5128:
@@ -173,14 +156,13 @@ static void map5_write(uint32 address, uint8 value)
    default:
 #ifdef NOFRENDO_DEBUG
       nofrendo_log_printf("unknown mmc5 write: $%02X to $%04X\n", value, address);
-#endif /* NOFRENDO_DEBUG */
+#endif  
       break;
    }
 }
 
 static uint8 map5_read(uint32 address)
-{
-   /* Castlevania 3 IRQ counter */
+{ 
    if (address == 0x5204)
    {
       /* if reset == 1, we've hit scanline */
@@ -190,7 +172,7 @@ static uint8 map5_read(uint32 address)
    {
 #ifdef NOFRENDO_DEBUG
       nofrendo_log_printf("invalid MMC5 read: $%04X", address);
-#endif /* NOFRENDO_DEBUG */
+#endif  
       return 0xFF;
    }
 }
@@ -205,8 +187,7 @@ static void map5_init(void)
    irq.counter = irq.enabled = 0;
    irq.reset = irq.latch = 0;
 }
-
-/* incomplete SNSS definition */
+ 
 static void map5_getstate(SnssMapperBlock *state)
 {
    state->extraData.mapper5.dummy = 0;
