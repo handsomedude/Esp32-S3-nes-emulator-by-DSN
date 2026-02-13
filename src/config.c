@@ -2,12 +2,19 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#include "noftypes.h"
+#include <stdbool.h>
+ 
+#include "esp_log.h"
+ 
+#include "noftypes.h" 
 #include "log.h"
-#include "osd.h"
+#include "osd.h" 
 #include "nofconfig.h"
 #include "version.h"
+
+static const char *TAG = "NES_CONFIG";
+ 
+#define stricmp strcasecmp
 
 typedef struct myvar_s
 {
@@ -17,34 +24,34 @@ typedef struct myvar_s
 
 static myvar_t *myVars = NULL;
 static bool mySaveNeeded = false;
-
+ 
 static void my_destroy(myvar_t **var)
 {
-   ASSERT(*var);
+   if (!(*var)) return;
 
-   if ((*var)->group)
-      NOFRENDO_FREE((*var)->group);
-   if ((*var)->key)
-      NOFRENDO_FREE((*var)->key);
-   if ((*var)->value)
-      NOFRENDO_FREE((*var)->value);
-   NOFRENDO_FREE(*var);
+   if ((*var)->group) nes_mem_free((*var)->group);
+   if ((*var)->key)   nes_mem_free((*var)->key);
+   if ((*var)->value) nes_mem_free((*var)->value);
+   
+   nes_mem_free(*var);
+   *var = NULL;
 }
 
 static myvar_t *my_create(const char *group, const char *key, const char *value)
 {
    myvar_t *var;
-
-   var = NOFRENDO_MALLOC(sizeof(*var));
-   if (NULL == var)
-   {
-      return 0;
-   }
+ 
+   var = (myvar_t *)mem_alloc(sizeof(*var), false);
+   if (NULL == var) return NULL;
 
    var->less = var->greater = NULL;
    var->group = var->key = var->value = NULL;
 
-   if ((var->group = NOFRENDO_MALLOC(strlen(group) + 1)) && (var->key = NOFRENDO_MALLOC(strlen(key) + 1)) && (var->value = NOFRENDO_MALLOC(strlen(value) + 1)))
+   var->group = (char *)mem_alloc(strlen(group) + 1, false);
+   var->key   = (char *)mem_alloc(strlen(key) + 1, false);
+   var->value = (char *)mem_alloc(strlen(value) + 1, false);
+
+   if (var->group && var->key && var->value)
    {
       strcpy(var->group, group);
       strcpy(var->key, key);
@@ -98,8 +105,7 @@ static void my_insert(myvar_t *var)
 
 static void my_save(FILE *stream, myvar_t *var, char **group)
 {
-   if (NULL == var)
-      return;
+   if (NULL == var) return;
 
    my_save(stream, var->less, group);
 
@@ -116,61 +122,61 @@ static void my_save(FILE *stream, myvar_t *var, char **group)
 
 static void my_cleanup(myvar_t *var)
 {
-   if (NULL == var)
-      return;
+   if (NULL == var) return;
 
    my_cleanup(var->less);
    my_cleanup(var->greater);
-   my_destroy(&var);
+
+   if (var->group) nes_mem_free(var->group);
+   if (var->key)   nes_mem_free(var->key);
+   if (var->value) nes_mem_free(var->value);
+   nes_mem_free(var);
 }
 
 static char *my_getline(FILE *stream)
 {
-   char buf[1024];
+   char buf[256];
    char *dynamic = NULL;
 
    do
    {
       if (NULL == (fgets(buf, sizeof(buf), stream)))
       {
-         if (dynamic)
-            NOFRENDO_FREE(dynamic);
-         return 0;
+         if (dynamic) nes_mem_free(dynamic);
+         return NULL;
       }
 
+      size_t buf_len = strlen(buf);
       if (NULL == dynamic)
       {
-         dynamic = NOFRENDO_MALLOC(strlen(buf) + 1);
-         if (NULL == dynamic)
-         {
-            return 0;
-         }
+         dynamic = (char *)mem_alloc(buf_len + 1, false);
+         if (NULL == dynamic) return NULL;
          strcpy(dynamic, buf);
       }
       else
       { 
-         char *temp = NULL;
-         temp = NOFRENDO_MALLOC(strlen(dynamic) + strlen(buf) + 1);
-         if (NULL == temp)
-            return 0;
+         char *temp;
+         size_t old_len = strlen(dynamic);
+         temp = (char *)mem_alloc(old_len + buf_len + 1, false);
+         if (NULL == temp) {
+             nes_mem_free(dynamic);
+             return NULL;
+         }
 
          strcpy(temp, dynamic);
-         NOFRENDO_FREE(dynamic);
+         strcat(temp, buf);
+         nes_mem_free(dynamic);
          dynamic = temp;
-
-         strcat(dynamic, buf);
       }
 
-      if (feof(stream))
-      {
-         return dynamic;
-      }
+      if (feof(stream)) return dynamic;
+
    } while (dynamic[strlen(dynamic) - 1] != '\n');
 
    return dynamic;
 }
  
-static int load_config(char *filename)
+static int load_config(const char *filename)
 {
    FILE *config_file;
 
@@ -183,16 +189,16 @@ static int load_config(char *filename)
       while ((line = my_getline(config_file)))
       {
          char *s;
+         size_t len = strlen(line);
 
-         if ('\n' == line[strlen(line) - 1])
-            line[strlen(line) - 1] = '\0';
+         if (len > 0 && '\n' == line[len - 1])
+            line[len - 1] = '\0';
 
          s = line;
 
          do
          { 
-            while (isspace(*s))
-               s++;
+            while (isspace((int)*s)) s++;
 
             switch (*s)
             {
@@ -203,23 +209,23 @@ static int load_config(char *filename)
                break;
 
             case '[':
-               if (group)
-                  NOFRENDO_FREE(group);
+               if (group) nes_mem_free(group);
 
                group = ++s;
-
-               s = strchr(s, ']');
-               if (NULL == s)
+               char *end_bracket = strchr(s, ']');
+               
+               if (NULL == end_bracket)
                {
-                  nofrendo_log_printf("load_config: missing ']' after group\n");
+                  ESP_LOGW(TAG, "load_config: missing ']' after group");
                   s = group + strlen(group);
                }
                else
                {
-                  *s++ = '\0';
+                  *end_bracket = '\0';
+                  s = end_bracket + 1;
                }
 
-               if ((value = NOFRENDO_MALLOC(strlen(group) + 1)))
+               if ((value = (char *)mem_alloc(strlen(group) + 1, false)))
                {
                   strcpy(value, group);
                }
@@ -231,7 +237,7 @@ static int load_config(char *filename)
                s = strchr(s, '=');
                if (NULL == s)
                {
-                  nofrendo_log_printf("load_config: missing '=' after key\n");
+                  ESP_LOGW(TAG, "load_config: missing '=' after key");
                   s = key + strlen(key);
                }
                else
@@ -239,42 +245,47 @@ static int load_config(char *filename)
                   *s++ = '\0';
                }
 
-               while (strlen(key) && isspace(key[strlen(key) - 1]))
-                  key[strlen(key) - 1] = '\0';
+               char *end = key + strlen(key) - 1;
+               while (end > key && isspace((int)*end)) *end-- = '\0';
 
-               while (isspace(*s))
-                  s++;
+               while (isspace((int)*s)) s++;
 
-               while (strlen(s) && isspace(s[strlen(s) - 1]))
-                  s[strlen(s) - 1] = '\0';
+               end = s + strlen(s) - 1;
+               while (end > s && isspace((int)*end)) *end-- = '\0';
 
                {
                   myvar_t *var = my_create(group ? group : "", key, s);
                   if (NULL == var)
                   {
-                     nofrendo_log_printf("load_config: my_create failed\n");
+                     ESP_LOGE(TAG, "load_config: my_create failed");
+                     nes_mem_free(line);
+                     if (group) nes_mem_free(group);
+                     fclose(config_file);
                      return -1;
                   }
-
                   my_insert(var);
                }
                s += strlen(s);
             }
          } while (*s);
 
-         NOFRENDO_FREE(line);
+         nes_mem_free(line);
       }
 
-      if (group)
-         NOFRENDO_FREE(group);
-
+      if (group) nes_mem_free(group);
       fclose(config_file);
+      ESP_LOGI(TAG, "Config loaded: %s", filename);
+   }
+   else 
+   {
+       ESP_LOGW(TAG, "Config file not found: %s", filename);
+       return -1;
    }
 
    return 0;
 }
  
-static int save_config(char *filename)
+static int save_config(const char *filename)
 {
    FILE *config_file;
    char *group = "";
@@ -282,21 +293,21 @@ static int save_config(char *filename)
    config_file = fopen(filename, "w");
    if (NULL == config_file)
    {
-      nofrendo_log_printf("save_config failed\n");
+      ESP_LOGE(TAG, "save_config failed: %s", filename);
       return -1;
    }
 
-   fprintf(config_file, ";; " APP_STRING " " APP_VERSION "\n");
-   fprintf(config_file, ";; NOTE: comments are not preserved.\n");
+   fprintf(config_file, ";; ESP32 NES EMU Config\n");
    my_save(config_file, myVars, &group);
    fclose(config_file);
+   ESP_LOGI(TAG, "Config saved: %s", filename);
 
    return 0;
 }
 
 static bool open_config(void)
 {
-   return load_config(config.filename);
+   return (load_config(config.filename) == 0);
 }
 
 static void close_config(void)
@@ -307,22 +318,18 @@ static void close_config(void)
    }
 
    my_cleanup(myVars);
+   myVars = NULL;
 }
 
 static void write_int(const char *group, const char *key, int value)
 {
-   char buf[24];
-   static myvar_t *var;
+   char buf[32];
+   myvar_t *var;
 
-   sprintf(buf, "%d", value);
-   buf[sizeof(buf) - 1] = '\0';
+   snprintf(buf, sizeof(buf), "%d", value);
 
    var = my_create(group, key, buf);
-   if (NULL == var)
-   {
-      nofrendo_log_printf("write_int failed\n");
-      return;
-   }
+   if (NULL == var) return;
 
    my_insert(var);
    mySaveNeeded = true;
@@ -330,29 +337,24 @@ static void write_int(const char *group, const char *key, int value)
  
 static int read_int(const char *group, const char *key, int def)
 {
-   static myvar_t *var;
+   myvar_t *var;
 
    var = my_lookup(group, key);
    if (NULL == var)
    {
       write_int(group, key, def);
-
       return def;
    }
 
-   return strtoul(var->value, 0, 0);
+   return (int)strtoul(var->value, NULL, 0);
 }
 
 static void write_string(const char *group, const char *key, const char *value)
 {
-   static myvar_t *var;
+   myvar_t *var;
 
    var = my_create(group, key, value);
-   if (NULL == var)
-   {
-      nofrendo_log_printf("write_string failed\n");
-      return;
-   }
+   if (NULL == var) return;
 
    my_insert(var);
    mySaveNeeded = true;
@@ -360,20 +362,19 @@ static void write_string(const char *group, const char *key, const char *value)
  
 static const char *read_string(const char *group, const char *key, const char *def)
 {
-   static myvar_t *var;
+   myvar_t *var;
 
    var = my_lookup(group, key);
    if (NULL == var)
    {
       if (def != NULL)
          write_string(group, key, def);
-
       return def;
    }
 
    return var->value;
 }
- 
+  
 config_t config =
     {
         open_config,
@@ -382,4 +383,5 @@ config_t config =
         read_string,
         write_int,
         write_string,
-        CONFIG_FILE};
+        "/sd/nes.cfg"
+    };
