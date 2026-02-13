@@ -17,10 +17,7 @@ static void map65_init(void)
    irq.low = irq.high = 0;
    irq.cycles = 0;
 }
-
-/* TODO: shouldn't there be some kind of HBlank callback??? */
-
-/* mapper 65: Irem H-3001*/
+ 
 static void map65_write(uint32 address, uint8 value)
 {
    int range = address & 0xF000;
