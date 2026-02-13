@@ -6,8 +6,7 @@
 #ifndef PI
 #define PI 3.1415926535897932384626433832795
 #endif
-
-/* my NES palette, converted to RGB */
+ 
 rgb_t shady_palette[] =
 {
    {0x80,0x80,0x80}, {0x00,0x00,0xBB}, {0x37,0x00,0xBF}, {0x84,0x00,0xA6},
@@ -30,12 +29,7 @@ rgb_t shady_palette[] =
    {0xFF,0xD9,0xA2}, {0xCC,0xE1,0x99}, {0xAE,0xEE,0xB7}, {0xAA,0xF7,0xEE},
    {0xB3,0xEE,0xFF}, {0xDD,0xDD,0xDD}, {0x11,0x11,0x11}, {0x11,0x11,0x11}
 };
-
-/* dynamic palette building routines,
-** care of Kevin Horton (khorton@iquest.net)
-*/
-
-/* our global palette */
+ 
 rgb_t nes_palette[64];
 
 
@@ -94,29 +88,26 @@ void pal_generate(void)
       {
          switch (z)
          {
-         case 0:
-            /* is color $x0?  If so, get luma */
+         case 0: 
             s = 0;
             y = brightness[0][x];
             break;
 
-         case 13:
-            /* is color $xD?  If so, get luma */
+         case 13: 
             s = 0;
             y = brightness[2][x];
             break;
 
          case 14:
-         case 15:
-            /* is color $xE/F?  If so, set to black */
+         case 15: 
             s = 0;
             y = brightness[3][x];
             
             break;
 
          default:
-            s = tint;                  /* grab tint */
-            y = brightness[1][x];      /* grab default luminance */
+            s = tint;                  
+            y = brightness[1][x];       
             break;
          }
 
