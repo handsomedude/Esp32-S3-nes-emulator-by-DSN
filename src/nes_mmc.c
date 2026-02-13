@@ -8,6 +8,9 @@
 #include <mmclist.h>
 #include <nes_rom.h>
 
+#pragma GCC optimize("O3")
+#pragma GCC optimize("inline-functions")
+
 #define  MMC_8KROM         (mmc.cart->rom_banks * 2)
 #define  MMC_16KROM        (mmc.cart->rom_banks)
 #define  MMC_32KROM        (mmc.cart->rom_banks / 2)
@@ -42,8 +45,7 @@ void mmc_getcontext(mmc_t *dest_mmc)
 {
    *dest_mmc = mmc;
 }
-
-/* VROM bankswitching */
+ 
 void mmc_bankvrom(int size, uint32 address, int bank)
 {
    if (0 == mmc.cart->vrom_banks)
@@ -79,8 +81,7 @@ void mmc_bankvrom(int size, uint32 address, int bank)
       log_printf("invalid VROM bank size %d\n", size);
    }
 }
-
-/* ROM bankswitching */
+ 
 void mmc_bankrom(int size, uint32 address, int bank)
 {
    nes6502_context mmc_cpu;
@@ -133,8 +134,7 @@ void mmc_bankrom(int size, uint32 address, int bank)
 
    nes6502_setcontext(&mmc_cpu);
 }
-
-/* Check to see if this mapper is supported */
+ 
 bool mmc_peek(int map_num)
 {
    mapintf_t **map_ptr = mappers;
@@ -152,8 +152,7 @@ bool mmc_peek(int map_num)
 static void mmc_setpages(void)
 {
    log_printf("setting up mapper %d\n", mmc.intf->number);
-
-   /* Switch ROM into CPU space, set VROM/VRAM (done for ALL ROMs) */
+ 
    mmc_bankrom(16, 0x8000, 0);
    mmc_bankrom(16, 0xC000, MMC_LASTBANK);
    mmc_bankvrom(8, 0x0000, 0);
@@ -169,9 +168,7 @@ static void mmc_setpages(void)
       else
          ppu_mirror(0, 0, 1, 1);
    }
-
-   /* if we have no VROM, switch in VRAM */
-   /* TODO: fix this hack implementation */
+ 
    if (0 == mmc.cart->vrom_banks)
    {
       ASSERT(mmc.cart->vram);
@@ -180,8 +177,7 @@ static void mmc_setpages(void)
       ppu_mirrorhipages();
    }
 }
-
-/* Mapper initialization routine */
+ 
 void mmc_reset(void)
 {
    mmc_setpages();
