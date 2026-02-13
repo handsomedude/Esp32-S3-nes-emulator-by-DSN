@@ -31,8 +31,7 @@ static void map1_write(uint32 address, uint8 value)
    //lastreg = regnum;
 
    latch |= ((value & 1) << bitcount++);
-
-   /* 5 bit registers */
+ 
    if (5 != bitcount)
       return;
 
