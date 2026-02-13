@@ -40,19 +40,18 @@ static void map24_write(uint32 address, uint8 value)
       mmc_bankrom(16, 0x8000, value);
       break;
 
-   case 0x9003:
-      /* ??? */
+   case 0x9003: 
       break;
 
    case 0xB003:
       switch (value & 0x0C)
       {
       case 0x00:
-         ppu_mirror(0, 1, 0, 1); /* vertical */
+         ppu_mirror(0, 1, 0, 1); 
          break;
 
       case 0x04:
-         ppu_mirror(0, 0, 1, 1); /* horizontal */
+         ppu_mirror(0, 0, 1, 1);  
          break;
 
       case 0x08:
@@ -122,7 +121,7 @@ static void map24_write(uint32 address, uint8 value)
    default:
 #ifdef NOFRENDO_DEBUG
       nofrendo_log_printf("invalid VRC6 write: $%02X to $%04X", value, address);
-#endif /* NOFRENDO_DEBUG */
+#endif  
       break;
    }
 }
