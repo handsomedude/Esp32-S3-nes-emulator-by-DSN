@@ -5,14 +5,13 @@
 static void map93_write(uint32 address, uint8 value)
 {
    UNUSED(address);
-
-   /* ($8000-$FFFF) D7-D4 = switch $8000-$BFFF D0: mirror */
+ 
    mmc_bankrom(16, 0x8000, value >> 4);
 
    if (value & 1)
-      ppu_mirror(0, 1, 0, 1); /* vert */
+      ppu_mirror(0, 1, 0, 1); 
    else
-      ppu_mirror(0, 0, 1, 1); /* horiz */
+      ppu_mirror(0, 0, 1, 1);  
 }
 
 static map_memwrite map93_memwrite[] =
