@@ -3,18 +3,23 @@
 
 #include "nofrendo.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+ 
 enum
 {
    event_none = 0,
+    
    event_quit,
    event_insert,
    event_eject,
    event_togglepause,
-   event_soft_reset,
-   event_hard_reset,
+   event_soft_reset,   
+   event_hard_reset,   
    event_snapshot,
    event_toggle_frameskip,
-   /* saves */
+ 
    event_state_save,
    event_state_load,
    event_state_slot_0,
@@ -27,7 +32,7 @@ enum
    event_state_slot_7,
    event_state_slot_8,
    event_state_slot_9,
-   /* GUI */
+ 
    event_gui_toggle_oam,
    event_gui_toggle_wave,
    event_gui_toggle_pattern,
@@ -36,7 +41,7 @@ enum
    event_gui_toggle_fps,
    event_gui_display_info,
    event_gui_toggle,
-   /* sound */
+ 
    event_toggle_channel_0,
    event_toggle_channel_1,
    event_toggle_channel_2,
@@ -46,7 +51,7 @@ enum
    event_set_filter_0,
    event_set_filter_1,
    event_set_filter_2,
-   /* picture */
+ 
    event_toggle_sprites,
    event_palette_hue_up,
    event_palette_hue_down,
@@ -54,7 +59,7 @@ enum
    event_palette_tint_down,
    event_palette_set_default,
    event_palette_set_shady,
-   /* joypad 1 */
+ 
    event_joypad1_a,
    event_joypad1_b,
    event_joypad1_start,
@@ -63,7 +68,7 @@ enum
    event_joypad1_down,
    event_joypad1_left,
    event_joypad1_right,
-   /* joypad 2 */
+ 
    event_joypad2_a,
    event_joypad2_b,
    event_joypad2_start,
@@ -72,11 +77,11 @@ enum
    event_joypad2_down,
    event_joypad2_left,
    event_joypad2_right,
-   /* NSF control */
+ 
    event_songup,
    event_songdown,
    event_startsong,
-   /* OS specific */
+ 
    event_osd_1,
    event_osd_2,
    event_osd_3,
@@ -86,15 +91,19 @@ enum
    event_osd_7,
    event_osd_8,
    event_osd_9,
-   /* last */
+
    event_last
 };
-
+ 
 typedef void (*event_t)(int code);
-
+ 
 extern void event_init(void);
 extern void event_set(int index, event_t handler);
 extern event_t event_get(int index);
 extern void event_set_system(system_t type);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif 
