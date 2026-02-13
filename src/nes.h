@@ -8,20 +8,18 @@
 #include <nes_rom.h>
 #include "nes6502.h"
 #include <bitmap.h>
-
-/* Visible (NTSC) screen height */
+ 
 #ifndef NES_VISIBLE_HEIGHT
 #define  NES_VISIBLE_HEIGHT   224
-#endif /* !NES_VISIBLE_HEIGHT */
+#endif 
 #define  NES_SCREEN_WIDTH     256
 #define  NES_SCREEN_HEIGHT    240
-
-/* NTSC = 60Hz, PAL = 50Hz */
+ 
 #ifdef PAL
 #define  NES_REFRESH_RATE     50
-#else /* !PAL */
+#else 
 #define  NES_REFRESH_RATE     60
-#endif /* !PAL */
+#endif  
 
 #define  MAX_MEM_HANDLERS     32
 
@@ -33,8 +31,7 @@ enum
 
 
 typedef struct nes_s
-{
-   /* hardware things */
+{ 
    nes6502_context *cpu;
    nes6502_memread readhandler[MAX_MEM_HANDLERS];
    nes6502_memwrite writehandler[MAX_MEM_HANDLERS];
@@ -51,24 +48,19 @@ typedef struct nes_s
    int fiq_cycles;
 
    int scanline;
-
-   /* Timing stuff */
+ 
    float scanline_cycles;
    bool autoframeskip;
-
-   /* control */
+ 
    bool poweroff;
    bool pause;
 
 } nes_t;
 
 
-extern int nes_isourfile(const char *filename);
-
-/* temp hack */
+extern int nes_isourfile(const char *filename); 
 extern nes_t *nes_getcontextptr(void);
-
-/* Function prototypes */
+ 
 extern void nes_getcontext(nes_t *machine);
 extern void nes_setcontext(nes_t *machine);
 
