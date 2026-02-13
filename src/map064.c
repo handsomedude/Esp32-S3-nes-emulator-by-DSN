@@ -32,8 +32,7 @@ static void map64_hblank(int vblank)
       }
    }
 }
-
-/* mapper 64: Tengen RAMBO-1 */
+ 
 static void map64_write(uint32 address, uint8 value)
 {
    switch (address & 0xE001)
@@ -95,7 +94,7 @@ static void map64_write(uint32 address, uint8 value)
       default:
 #ifdef NOFRENDO_DEBUG
          nofrendo_log_printf("mapper 64: unknown command #%d", command & 0xF);
-#endif /* NOFRENDO_DEBUG */
+#endif  
          break;
       }
       break;
@@ -129,7 +128,7 @@ static void map64_write(uint32 address, uint8 value)
    default:
 #ifdef NOFRENDO_DEBUG
       nofrendo_log_printf("mapper 64: Wrote $%02X to $%04X", value, address);
-#endif /* NOFRENDO_DEBUG */
+#endif  
       break;
    }
 
