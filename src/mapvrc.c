@@ -163,7 +163,7 @@ static void map21_write(uint32 address, uint8 value)
    default:
 #ifdef NOFRENDO_DEBUG
       nofrendo_log_printf("wrote $%02X to $%04X", value, address);
-#endif /* !NOFRENDO_DEBUG */
+#endif  
       break;
    }
 }
@@ -339,7 +339,7 @@ static void map23_write(uint32 address, uint8 value)
    default:
 #ifdef NOFRENDO_DEBUG
       nofrendo_log_printf("wrote $%02X to $%04X", value, address);
-#endif /* !NOFRENDO_DEBUG */
+#endif  
       break;
    }
 }
