@@ -3,9 +3,7 @@
 #include <log.h>
 
 static nesinput_t *nes_input[MAX_CONTROLLERS];
-static int active_entries = 0;
-
-/* read counters */
+static int active_entries = 0; 
 static int pad0_readcount, pad1_readcount, ppad_readcount, ark_readcount;
 
 
@@ -29,15 +27,13 @@ static uint8 get_pad0(void)
    uint8 value;
 
    value = (uint8) retrieve_type(INP_JOYPAD0);
-
-   /* mask out left/right simultaneous keypresses */
+ 
    if ((value & INP_PAD_UP) && (value & INP_PAD_DOWN))
       value &= ~(INP_PAD_UP | INP_PAD_DOWN);
 
    if ((value & INP_PAD_LEFT) && (value & INP_PAD_RIGHT))
       value &= ~(INP_PAD_LEFT | INP_PAD_RIGHT);
-
-   /* return (0x40 | value) due to bus conflicts */
+ 
    return (0x40 | ((value >> pad0_readcount++) & 1));
 }
 
@@ -46,15 +42,13 @@ static uint8 get_pad1(void)
    uint8 value;
 
    value = (uint8) retrieve_type(INP_JOYPAD1);
-
-   /* mask out left/right simultaneous keypresses */
+ 
    if ((value & INP_PAD_UP) && (value & INP_PAD_DOWN))
       value &= ~(INP_PAD_UP | INP_PAD_DOWN);
 
    if ((value & INP_PAD_LEFT) && (value & INP_PAD_RIGHT))
       value &= ~(INP_PAD_LEFT | INP_PAD_RIGHT);
-
-   /* return (0x40 | value) due to bus conflicts */
+ 
    return (0x40 | ((value >> pad1_readcount++) & 1));
 }
 
@@ -99,8 +93,7 @@ static uint8 get_arkanoid(void)
    else
       return 0;
 }
-
-/* return input state for all types indicated (can be ORed together) */
+ 
 uint8 input_get(int types)
 {
    uint8 value = 0;
@@ -122,8 +115,7 @@ uint8 input_get(int types)
 
    return value;
 }
-
-/* register an input type */
+ 
 void input_register(nesinput_t *input)
 {
    if (NULL == input)
@@ -138,9 +130,9 @@ void input_event(nesinput_t *input, int state, int value)
    ASSERT(input);
 
    if (state == INP_STATE_MAKE)
-      input->data |= value;   /* OR it in */
-   else /* break state */
-      input->data &= ~value;  /* mask it out */
+      input->data |= value;  
+   else  
+      input->data &= ~value;  
 }
 
 void input_strobe(void)
