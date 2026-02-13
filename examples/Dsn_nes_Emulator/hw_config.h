@@ -1,35 +1,35 @@
 #ifndef HW_CONFIG_H
 #define HW_CONFIG_H
- 
+
+// Set to 1 to enable sound, 0 to disable
+#define ENABLE_SOUND 0
+
 // SD Card Pins
-#define SD_CS      7   
-#define SD_SCK     16  
-#define SD_MOSI    8  
-#define SD_MISO    17  
- 
-// Audio Pin (Buzzer/Speaker + Transistor)
-#define AUDIO_PIN  5  
- 
-// Controller Pins
-#define BTN_UP     1
-#define BTN_DOWN   2
-#define BTN_LEFT   42
-#define BTN_RIGHT  41
-#define BTN_A      40 
-#define BTN_B      39 
+#define SD_CS 41
+#define SD_SCK 42
+#define SD_MOSI 2
+#define SD_MISO 1
 
-#define BTN_START  14  
-#define BTN_SELECT 21  
+// I2S Audio Pins (MAX98357A or similar DAC)
+#define I2S_DO 4   // Data Out - Connect to DIN on MAX98357A
+#define I2S_BCK 5  // Bit Clock - Connect to BCLK on MAX98357A
+#define I2S_WS 6   // Left/Right Clock (Word Select) - Connect to LRC on MAX98357A
 
-/*
- 
-  TFT_MISO 13
-  TFT_MOSI 11
-  TFT_SCLK 12
-  TFT_CS   10  
-  TFT_DC   15  
-  TFT_RST  9  
-  TOUCH_CS 46
-*/
+// TFT Display Pins (ST7789)
+#define HW_TFT_MOSI 11   // Data In
+#define HW_TFT_SCK 12    // Clock
+#define HW_TFT_CS 10     // Chip Select
+#define HW_TFT_DC 15     // Data/Command
+#define HW_TFT_RST 9     // Reset
+
+// Controller/Button Pins (Active LOW with internal pullup)
+#define BTN_UP 13
+#define BTN_DOWN 14
+#define BTN_LEFT 8
+#define BTN_RIGHT 17
+#define BTN_A 45
+#define BTN_B 21
+#define BTN_START 47
+#define BTN_SELECT 39
 
 #endif
