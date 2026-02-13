@@ -1,8 +1,7 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
 #include "nes_ppu.h"
-
-/* mapper 18: Jaleco SS8806 */
+ 
 #define VRC_PBANK(bank, value, high)                                                                  \
    do                                                                                                 \
    {                                                                                                  \
@@ -162,7 +161,7 @@ static void map18_write(uint32 address, uint8 value)
          break;
       case 3:
          ppu_mirror(1, 1, 1, 1);
-         break; // should this be zero?
+         break;  
       default:
          break;
       }
