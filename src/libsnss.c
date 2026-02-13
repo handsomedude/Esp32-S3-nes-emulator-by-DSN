@@ -15,9 +15,9 @@ swap32(unsigned int source)
    buffer[3] = ((char *)&source)[0];
 
    return *((unsigned int *)buffer);
-#else  /* !USE_LITTLE_ENDIAN */
+#else   
    return source;
-#endif /* !USE_LITTLE_ENDIAN */
+#endif  
 }
 
 static unsigned short
@@ -30,9 +30,9 @@ swap16(unsigned short source)
    buffer[1] = ((char *)&source)[0];
 
    return *((unsigned short *)buffer);
-#else  /* !USE_LITTLE_ENDIAN */
+#else  
    return source;
-#endif /* !USE_LITTLE_ENDIAN */
+#endif  
 }
  
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -144,15 +144,12 @@ SNSS_ReadFileHeader(SNSS_FILE *snssFile)
    return SNSS_OK;
 }
 
-/**************************************************************************/
-
 static SNSS_RETURN_CODE
 SNSS_WriteFileHeader(SNSS_FILE *snssFile)
 {
    unsigned int tempInt;
    char writeBuffer[8];
-
-   /* always place the SNSS tag in this field */
+ 
    strncpy(&writeBuffer[0], "SNSS", 5);
    tempInt = swap32(snssFile->headerBlock.numberOfBlocks);
    writeBuffer[4] = ((char *)&tempInt)[0];
@@ -180,8 +177,7 @@ SNSS_OpenFile(SNSS_FILE **snssFile, const char *filename, SNSS_OPEN_MODE mode)
    {
       return SNSS_OUT_OF_MEMORY;
    }
-
-   /* zero the memory */
+ 
    memset(*snssFile, 0, sizeof(SNSS_FILE));
 
    (*snssFile)->mode = mode;
@@ -211,15 +207,12 @@ SNSS_OpenFile(SNSS_FILE **snssFile, const char *filename, SNSS_OPEN_MODE mode)
    }
 }
 
-/**************************************************************************/
-
 SNSS_RETURN_CODE
 SNSS_CloseFile(SNSS_FILE **snssFile)
 {
    int prevLoc;
    SNSS_RETURN_CODE code;
-
-   /* file was never open, so this should indicate success- kinda. */
+ 
    if (NULL == *snssFile)
    {
       return SNSS_OK;
@@ -229,8 +222,7 @@ SNSS_CloseFile(SNSS_FILE **snssFile)
    {
       prevLoc = ftell((*snssFile)->fp);
       fseek((*snssFile)->fp, 0, SEEK_SET);
-
-      /* write the header again to update block count */
+ 
       if (SNSS_OK != (code = SNSS_WriteFileHeader(*snssFile)))
       {
          return SNSS_CLOSE_FAILED;
@@ -246,9 +238,7 @@ SNSS_CloseFile(SNSS_FILE **snssFile)
 
    return SNSS_OK;
 }
-
-/**************************************************************************/
-
+ 
 SNSS_RETURN_CODE
 SNSS_GetNextBlockType(SNSS_BLOCK_TYPE *blockType, SNSS_FILE *snssFile)
 {
@@ -259,14 +249,12 @@ SNSS_GetNextBlockType(SNSS_BLOCK_TYPE *blockType, SNSS_FILE *snssFile)
       return SNSS_READ_FAILED;
    }
    tagBuffer[TAG_LENGTH] = '\0';
-
-   /* reset the file pointer to the start of the block */
+ 
    if (fseek(snssFile->fp, -TAG_LENGTH, SEEK_CUR) != 0)
    {
       return SNSS_READ_FAILED;
    }
-
-   /* figure out which type of block it is */
+ 
    if (strcmp(tagBuffer, "BASR") == 0)
    {
       *blockType = SNSS_BASR;
@@ -298,28 +286,23 @@ SNSS_GetNextBlockType(SNSS_BLOCK_TYPE *blockType, SNSS_FILE *snssFile)
 
    return SNSS_OK;
 }
-
-/**************************************************************************/
-
+ 
 SNSS_RETURN_CODE
 SNSS_SkipNextBlock(SNSS_FILE *snssFile)
 {
    unsigned int blockLength;
-
-   /* skip the block's tag and version */
+ 
    if (fseek(snssFile->fp, TAG_LENGTH + sizeof(unsigned int), SEEK_CUR) != 0)
    {
       return SNSS_READ_FAILED;
    }
-
-   /* get the block data length */
+ 
    if (fread(&blockLength, sizeof(unsigned int), 1, snssFile->fp) != 1)
    {
       return SNSS_READ_FAILED;
    }
    blockLength = swap32(blockLength);
-
-   /* skip over the block data */
+ 
    if (fseek(snssFile->fp, blockLength, SEEK_CUR) != 0)
    {
       return SNSS_READ_FAILED;
@@ -368,9 +351,7 @@ SNSS_ReadBaseBlock(SNSS_FILE *snssFile)
 
    return SNSS_OK;
 }
-
-/**************************************************************************/
-
+ 
 static SNSS_RETURN_CODE
 SNSS_WriteBaseBlock(SNSS_FILE *snssFile)
 {
@@ -441,9 +422,7 @@ SNSS_ReadVramBlock(SNSS_FILE *snssFile)
 
    return SNSS_OK;
 }
-
-/**************************************************************************/
-
+ 
 static SNSS_RETURN_CODE
 SNSS_WriteVramBlock(SNSS_FILE *snssFile)
 {
@@ -483,21 +462,17 @@ SNSS_ReadSramBlock(SNSS_FILE *snssFile)
    {
       return SNSS_READ_FAILED;
    }
-
-   /* read blockLength - 1 bytes to get all of the SRAM */
+ 
    if (fread(&snssFile->sramBlock.sram, MIN(header.blockLength - 1, SRAM_8K), 1, snssFile->fp) != 1)
    {
       return SNSS_READ_FAILED;
    }
-
-   /* SRAM size is the size of the block - 1 (SRAM enabled byte) */
+ 
    snssFile->sramBlock.sramSize = header.blockLength - 1;
 
    return SNSS_OK;
 }
-
-/**************************************************************************/
-
+ 
 static SNSS_RETURN_CODE
 SNSS_WriteSramBlock(SNSS_FILE *snssFile)
 {
@@ -505,8 +480,7 @@ SNSS_WriteSramBlock(SNSS_FILE *snssFile)
    SNSS_RETURN_CODE returnCode;
 
    strcpy(header.tag, "SRAM");
-   header.blockVersion = SNSS_BLOCK_VERSION;
-   /* length of block is size of SRAM plus SRAM enabled byte */
+   header.blockVersion = SNSS_BLOCK_VERSION; 
    header.blockLength = snssFile->sramBlock.sramSize + 1;
    if ((returnCode = SNSS_WriteBlockHeader(&header, snssFile)) != SNSS_OK)
    {
@@ -570,9 +544,7 @@ SNSS_ReadMapperBlock(SNSS_FILE *snssFile)
 
    return SNSS_OK;
 }
-
-/**************************************************************************/
-
+ 
 static SNSS_RETURN_CODE
 SNSS_WriteMapperBlock(SNSS_FILE *snssFile)
 {
@@ -619,19 +591,15 @@ SNSS_WriteMapperBlock(SNSS_FILE *snssFile)
  
 static SNSS_RETURN_CODE
 SNSS_ReadControllersBlock(SNSS_FILE *snssFile)
-{
-   /* quell warnings */
+{ 
    snssFile = snssFile;
 
    return SNSS_OK;
 }
-
-/**************************************************************************/
-
+ 
 static SNSS_RETURN_CODE
 SNSS_WriteControllersBlock(SNSS_FILE *snssFile)
-{
-   /* quell warnings */
+{ 
    snssFile = snssFile;
 
    return SNSS_OK;
@@ -654,9 +622,7 @@ SNSS_ReadSoundBlock(SNSS_FILE *snssFile)
 
    return SNSS_OK;
 }
-
-/**************************************************************************/
-
+ 
 static SNSS_RETURN_CODE
 SNSS_WriteSoundBlock(SNSS_FILE *snssFile)
 {
@@ -710,9 +676,7 @@ SNSS_ReadBlock(SNSS_FILE *snssFile, SNSS_BLOCK_TYPE blockType)
       return SNSS_UNSUPPORTED_BLOCK;
    }
 }
-
-/**************************************************************************/
-
+ 
 SNSS_RETURN_CODE
 SNSS_WriteBlock(SNSS_FILE *snssFile, SNSS_BLOCK_TYPE blockType)
 {
