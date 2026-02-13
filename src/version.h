@@ -5,8 +5,8 @@
 #define APP_STRING "Nosefart"
 #else
 #define APP_STRING "Nofrendo"
-#endif /* NSF_PLAYER */
+#endif  
 
-#define APP_VERSION "2.0"
+#define APP_VERSION "3.0"
 
 #endif
