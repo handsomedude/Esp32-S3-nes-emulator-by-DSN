@@ -48,7 +48,7 @@ static void map160_write(uint32 address, uint8 value)
    {
       nofrendo_log_printf("mapper 160: untrapped write $%02X to $%04X\n", value, address);
    }
-#endif /* NOFRENDO_DEBUG */
+#endif 
 }
 
 static void map160_hblank(int vblank)
