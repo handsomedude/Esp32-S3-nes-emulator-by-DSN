@@ -1,15 +1,13 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
 #include "nes_ppu.h"
-
-/* Switch VROM for VS games */
+ 
 static void map99_vromswitch(uint8 value)
 {
    int bank = (value & 0x04) >> 2;
    mmc_bankvrom(8, 0x0000, bank);
 }
-
-/* mapper 99: VS. System */
+ 
 static void map99_init(void)
 {
    ppu_mirror(0, 1, 2, 3);
