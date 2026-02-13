@@ -1,7 +1,6 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
-
-/* mapper 66: GNROM */
+ 
 static void map66_write(uint32 address, uint8 value)
 {
    UNUSED(address);
