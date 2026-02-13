@@ -22,10 +22,14 @@ void *mem_alloc(int size, bool prefer_fast_memory) {
     return ptr;
 }
 
-void *mem_calloc(int nmemb, int size, bool prefer_fast_memory) {
-    return mem_alloc(nmemb * size, prefer_fast_memory);
+void *nes_mem_calloc(size_t nmemb, size_t size) {
+    return mem_alloc(nmemb * size, false);
 }
 
-void mem_free(void *ptr) {
+void *nes_mem_malloc(size_t size) {
+    return mem_alloc(size, false);
+}
+
+void nes_mem_free(void *ptr) {
     free(ptr);
 }
