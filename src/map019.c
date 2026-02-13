@@ -1,10 +1,7 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
 #include "nes_ppu.h"
-
-/* TODO: shouldn't there be an h-blank IRQ handler??? */
-
-/* Special mirroring macro for mapper 19 */
+ 
 #define N_BANK1(table, value)                                                                                                               \
    {                                                                                                                                        \
       if ((value) < 0xE0)                                                                                                                   \
@@ -23,8 +20,7 @@ static void map19_init(void)
 {
    irq.counter = irq.enabled = 0;
 }
-
-/* mapper 19: Namcot 106 */
+ 
 static void map19_write(uint32 address, uint8 value)
 {
    int reg = address >> 11;
