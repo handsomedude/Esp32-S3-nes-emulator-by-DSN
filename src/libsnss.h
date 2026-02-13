@@ -2,38 +2,16 @@
 #define _LIBSNSS_H_
 
 #include <stdio.h>
-
 #include "memguard.h"
-
-/**************************************************************************/
-/* endian customization */
-/**************************************************************************/
-/* 
-   Endian-ness quick reference:
-   the number is:
-      $12345678
-   the little-endian representation (e.g.: 6502, Intel x86) is:
-      78 56 34 12
-   the big-endian representation (e.g.: Motorola 68000) is:
-      12 34 56 78
-   the SNSS file format uses big-endian representation
-*/
-
-/* comment/uncomment depending on your processor architecture */
-/* commenting this out implies BIG ENDIAN */
+ 
 #define USE_LITTLE_ENDIAN
-
-/**************************************************************************/
-/* SNSS constants */
-/**************************************************************************/
 
 typedef enum _SNSS_OPEN_MODES
 {
    SNSS_OPEN_READ,
    SNSS_OPEN_WRITE
 } SNSS_OPEN_MODE;
-
-/* block types */
+ 
 typedef enum _SNSS_BLOCK_TYPES
 {
    SNSS_BASR,
@@ -44,8 +22,7 @@ typedef enum _SNSS_BLOCK_TYPES
    SNSS_SOUN,
    SNSS_UNKNOWN_BLOCK
 } SNSS_BLOCK_TYPE;
-
-/* function return types */
+ 
 typedef enum _SNSS_RETURN_CODES
 {
    SNSS_OK,
@@ -60,11 +37,7 @@ typedef enum _SNSS_RETURN_CODES
 
 #define TAG_LENGTH 4
 #define SNSS_BLOCK_VERSION 1
-
-/**************************************************************************/
-/* SNSS data structures */
-/**************************************************************************/
-
+ 
 struct mapper1Data
 {
    unsigned char registers[4];
@@ -289,7 +262,7 @@ typedef struct _SnssMapperBlock
 
 typedef struct _SnssControllersBlock
 {
-   unsigned char dummy; /* needed for some compilers; remove if any members are added */
+   unsigned char dummy;  
 } SnssControllersBlock;
 
 #define SOUND_BLOCK_LENGTH 0x16
@@ -297,11 +270,7 @@ typedef struct _SnssSoundBlock
 {
    unsigned char soundRegisters[0x16];
 } SnssSoundBlock;
-
-/**************************************************************************/
-/* SNSS file manipulation functions */
-/**************************************************************************/
-
+ 
 typedef struct _SNSS_FILE
 {
    FILE *fp;
@@ -318,23 +287,19 @@ typedef struct _SNSS_FILE
 #ifdef __cplusplus
 extern "C"
 {
-#endif /* __cplusplus */
-
-   /* general file manipulation routines */
+#endif 
+ 
    SNSS_RETURN_CODE SNSS_OpenFile(SNSS_FILE **snssFile, const char *filename,
                                   SNSS_OPEN_MODE mode);
    SNSS_RETURN_CODE SNSS_CloseFile(SNSS_FILE **snssFile);
-
-   /* block traversal */
+ 
    SNSS_RETURN_CODE SNSS_GetNextBlockType(SNSS_BLOCK_TYPE *blockType,
                                           SNSS_FILE *snssFile);
    SNSS_RETURN_CODE SNSS_SkipNextBlock(SNSS_FILE *snssFile);
-
-   /* functions to read/write SNSS blocks */
+ 
    SNSS_RETURN_CODE SNSS_ReadBlock(SNSS_FILE *snssFile, SNSS_BLOCK_TYPE blockType);
    SNSS_RETURN_CODE SNSS_WriteBlock(SNSS_FILE *snssFile, SNSS_BLOCK_TYPE blockType);
-
-   /* support functions */
+ 
    const char *SNSS_GetErrorString(SNSS_RETURN_CODE code);
 
    static SNSS_FILE *snssFileBlock;
@@ -342,6 +307,6 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif  
 
 #endif
