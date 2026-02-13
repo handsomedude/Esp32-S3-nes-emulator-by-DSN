@@ -12,8 +12,7 @@ static struct
 static uint8 reg;
 static uint8 command;
 static uint16 vrombase;
-
-/* mapper 4: MMC3 */
+ 
 static void map4_write(uint32 address, uint8 value)
 {
    switch (address & 0xE001)
@@ -73,20 +72,17 @@ static void map4_write(uint32 address, uint8 value)
       }
       break;
 
-   case 0xA000:
-      /* four screen mirroring crap */
+   case 0xA000: 
       if (0 == (mmc_getinfo()->flags & ROM_FLAG_FOURSCREEN))
       {
          if (value & 1)
-            ppu_mirror(0, 0, 1, 1); /* horizontal */
+            ppu_mirror(0, 0, 1, 1);  
          else
-            ppu_mirror(0, 1, 0, 1); /* vertical */
+            ppu_mirror(0, 1, 0, 1);  
       }
       break;
 
-   case 0xA001:
-      /* Save RAM enable / disable */
-      /* Messes up Startropics I/II if implemented -- bah */
+   case 0xA001: 
       break;
 
    case 0xC000:
@@ -113,7 +109,6 @@ static void map4_write(uint32 address, uint8 value)
       break;
 
    default:
-      //printf("map004: unhandled write: address=%p, value=0x%x\n", (void*)address, value);
       __asm__("nop");
       __asm__("nop");
       __asm__("nop");
