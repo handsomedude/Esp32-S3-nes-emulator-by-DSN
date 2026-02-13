@@ -1,7 +1,6 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
-
-/* mapper 2: UNROM */
+ 
 static void map2_init()
 {
    int last_bank = mmc_getinfo()->rom_banks - 1;
