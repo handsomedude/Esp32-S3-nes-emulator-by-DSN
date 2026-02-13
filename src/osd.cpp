@@ -739,8 +739,7 @@ extern "C" void vid_flush() {
 }
 
 extern "C" int vid_init(int width, int height, viddriver_t *osd_driver) {
-  if (!game_bitmap) game_bitmap = bmp_create(NES_SCREEN_WIDTH, NES_SCREEN_HEIGHT, 0);
-  // Keep ROM loading stable on low-memory systems: frame buffer alloc is delayed to vid_flush
+  if (!game_bitmap) game_bitmap = bmp_create(NES_SCREEN_WIDTH, NES_SCREEN_HEIGHT, 0); 
   frame_buffer = NULL;
   low_mem_video_mode = false;
   video_ready = (game_bitmap && game_bitmap->data);
