@@ -7,36 +7,26 @@
 
 #ifdef __GNUC__
 #define NES6502_JUMPTABLE
-#endif /* __GNUC__ */
+#endif 
 
 #define ADD_CYCLES(x)          \
    {                           \
       remaining_cycles -= (x); \
       cpu.total_cycles += (x); \
    }
-
-/*
-** Check to see if an index reg addition overflowed to next page
-*/
+ 
 #define PAGE_CROSS_CHECK(addr, reg) \
    {                                \
       if ((reg) > (uint8)(addr))    \
          ADD_CYCLES(1);             \
    }
 
-#define EMPTY_READ(value) /* empty */
-
-/*
-** Addressing mode macros
-*/
-
-/* Immediate */
+#define EMPTY_READ(value) 
 #define IMMEDIATE_BYTE(value)      \
    {                               \
       value = bank_readbyte(PC++); \
    }
-
-/* Absolute */
+ 
 #define ABSOLUTE_ADDR(address)     \
    {                               \
       address = bank_readword(PC); \
@@ -53,8 +43,7 @@
    {                         \
       ABSOLUTE(temp, value); \
    }
-
-/* Absolute indexed X */
+ 
 #define ABS_IND_X_ADDR(address)         \
    {                                    \
       ABSOLUTE_ADDR(address);           \
@@ -71,16 +60,14 @@
    {                          \
       ABS_IND_X(temp, value); \
    }
-
-/* special page-cross check version for read instructions */
+ 
 #define ABS_IND_X_BYTE_READ(value) \
    {                               \
       ABS_IND_X_ADDR(temp);        \
       PAGE_CROSS_CHECK(temp, X);   \
       value = mem_readbyte(temp);  \
    }
-
-/* Absolute indexed Y */
+ 
 #define ABS_IND_Y_ADDR(address)         \
    {                                    \
       ABSOLUTE_ADDR(address);           \
@@ -97,16 +84,14 @@
    {                          \
       ABS_IND_Y(temp, value); \
    }
-
-/* special page-cross check version for read instructions */
+ 
 #define ABS_IND_Y_BYTE_READ(value) \
    {                               \
       ABS_IND_Y_ADDR(temp);        \
       PAGE_CROSS_CHECK(temp, Y);   \
       value = mem_readbyte(temp);  \
    }
-
-/* Zero-page */
+ 
 #define ZERO_PAGE_ADDR(address) \
    {                            \
       IMMEDIATE_BYTE(address);  \
@@ -122,8 +107,7 @@
    {                           \
       ZERO_PAGE(btemp, value); \
    }
-
-/* Zero-page indexed X */
+ 
 #define ZP_IND_X_ADDR(address) \
    {                           \
       ZERO_PAGE_ADDR(address); \
@@ -140,9 +124,7 @@
    {                          \
       ZP_IND_X(btemp, value); \
    }
-
-/* Zero-page indexed Y */
-/* Not really an adressing mode, just for LDx/STx */
+ 
 #define ZP_IND_Y_ADDR(address) \
    {                           \
       ZERO_PAGE_ADDR(address); \
@@ -154,8 +136,7 @@
       ZP_IND_Y_ADDR(btemp);       \
       value = ZP_READBYTE(btemp); \
    }
-
-/* Indexed indirect */
+ 
 #define INDIR_X_ADDR(address)       \
    {                                \
       ZERO_PAGE_ADDR(btemp);        \
@@ -173,8 +154,7 @@
    {                        \
       INDIR_X(temp, value); \
    }
-
-/* Indirect indexed */
+ 
 #define INDIR_Y_ADDR(address)                      \
    {                                               \
       ZERO_PAGE_ADDR(btemp);                       \
@@ -191,32 +171,17 @@
    {                        \
       INDIR_Y(temp, value); \
    }
-
-/* special page-cross check version for read instructions */
+ 
 #define INDIR_Y_BYTE_READ(value)  \
    {                              \
       INDIR_Y_ADDR(temp);         \
       PAGE_CROSS_CHECK(temp, Y);  \
       value = mem_readbyte(temp); \
    }
-
-/* Stack push/pull */
+ 
 #define PUSH(value) stack[S--] = (uint8)(value)
 #define PULL() stack[++S]
-
-/*
-** flag register helper macros
-*/
-
-/* Theory: Z and N flags are set in just about every
-** instruction, so we will just store the value in those
-** flag variables, and mask out the irrelevant data when
-** we need to check them (branches, etc).  This makes the
-** zero flag only really be 'set' when z_flag == 0.
-** The rest of the flags are stored as true booleans.
-*/
-
-/* Scatter flags to separate variables */
+ 
 #define SCATTER_FLAGS(value)            \
    {                                    \
       n_flag = (value)&N_FLAG;          \
@@ -227,16 +192,13 @@
       z_flag = (0 == ((value)&Z_FLAG)); \
       c_flag = (value)&C_FLAG;          \
    }
-
-/* Combine flags into flag register */
+ 
 #define COMBINE_FLAGS() \
    (                    \
        (n_flag & N_FLAG) | (v_flag ? V_FLAG : 0) | R_FLAG | (b_flag ? B_FLAG : 0) | (d_flag ? D_FLAG : 0) | (i_flag ? I_FLAG : 0) | (z_flag ? 0 : Z_FLAG) | c_flag)
-
-/* Set N and Z flags based on given value */
+ 
 #define SET_NZ_FLAGS(value) n_flag = z_flag = (value);
-
-/* For BCC, BCS, BEQ, BMI, BNE, BPL, BVC, BVS */
+ 
 #define RELATIVE_BRANCH(condition)                  \
    {                                                \
       if (condition)                                \
@@ -258,10 +220,7 @@
    {                                 \
       PC = bank_readword((address)); \
    }
-
-/*
-** Interrupt macros
-*/
+ 
 #define NMI_PROC()           \
    {                         \
       PUSH(PC >> 8);         \
@@ -281,12 +240,7 @@
       i_flag = 1;            \
       JUMP(IRQ_VECTOR);      \
    }
-
-/*
-** Instruction macros
-*/
-
-/* Warning! NES CPU has no decimal mode, so by default this does no BCD! */
+ 
 #ifdef NES6502_DECIMAL
 #define ADC(cycles, read_func)                         \
    {                                                   \
@@ -332,9 +286,8 @@
       SET_NZ_FLAGS(A);                              \
       ADD_CYCLES(cycles);                           \
    }
-#endif /* NES6502_DECIMAL */
-
-/* undocumented */
+#endif 
+ 
 #define ANC(cycles, read_func)         \
    {                                   \
       read_func(data);                 \
@@ -351,8 +304,7 @@
       SET_NZ_FLAGS(A);         \
       ADD_CYCLES(cycles);      \
    }
-
-/* undocumented */
+ 
 #define ANE(cycles, read_func)   \
    {                             \
       read_func(data);           \
@@ -360,8 +312,7 @@
       SET_NZ_FLAGS(A);           \
       ADD_CYCLES(cycles);        \
    }
-
-/* undocumented */
+ 
 #ifdef NES6502_DECIMAL
 #define ARR(cycles, read_func)                             \
    {                                                       \
@@ -405,7 +356,7 @@
       v_flag = ((A >> 6) ^ (A >> 5)) & 1; \
       ADD_CYCLES(cycles);                 \
    }
-#endif /* NES6502_DECIMAL */
+#endif  
 
 #define ASL(cycles, read_func, write_func, addr) \
    {                                             \
@@ -424,8 +375,7 @@
       SET_NZ_FLAGS(A); \
       ADD_CYCLES(2);   \
    }
-
-/* undocumented */
+ 
 #define ASR(cycles, read_func) \
    {                           \
       read_func(data);         \
@@ -450,8 +400,7 @@
    {                                \
       RELATIVE_BRANCH(0 == z_flag); \
    }
-
-/* bit 7/6 of data move into N/V flags */
+ 
 #define BIT(cycles, read_func) \
    {                           \
       read_func(data);         \
@@ -475,8 +424,7 @@
    {                                           \
       RELATIVE_BRANCH(0 == (n_flag & N_FLAG)); \
    }
-
-/* Software interrupt type thang */
+ 
 #define BRK()                \
    {                         \
       PC++;                  \
@@ -528,8 +476,7 @@
       v_flag = 0;    \
       ADD_CYCLES(2); \
    }
-
-/* C is clear when data > A */
+ 
 #define _COMPARE(reg, value)              \
    {                                      \
       temp = (reg) - (value);             \
@@ -557,8 +504,7 @@
       _COMPARE(Y, data);       \
       ADD_CYCLES(cycles);      \
    }
-
-/* undocumented */
+ 
 #define DCP(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr, data);                     \
@@ -589,8 +535,7 @@
       SET_NZ_FLAGS(Y); \
       ADD_CYCLES(2);   \
    }
-
-/* undocumented (double-NOP) */
+ 
 #define DOP(cycles)       \
    {                      \
       PC++;               \
@@ -627,8 +572,7 @@
       SET_NZ_FLAGS(Y); \
       ADD_CYCLES(2);   \
    }
-
-/* undocumented */
+ 
 #define ISB(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr, data);                     \
@@ -636,14 +580,13 @@
       write_func(addr, data);                    \
       SBC(cycles, EMPTY_READ);                   \
    }
-
-/* TODO: make this a function callback */
+ 
 #ifdef NES6502_TESTOPS
 #define JAM()    \
    {             \
       cpu_Jam(); \
    }
-#else /* !NES6502_TESTOPS */
+#else  
 #define JAM()              \
    {                       \
       PC--;                \
@@ -651,12 +594,11 @@
       cpu.int_pending = 0; \
       ADD_CYCLES(2);       \
    }
-#endif /* !NES6502_TESTOPS */
+#endif  
 
 #define JMP_INDIRECT()                                                   \
    {                                                                     \
-      temp = bank_readword(PC);                                          \
-      /* bug in crossing page boundaries */                              \
+      temp = bank_readword(PC);                                          \ 
       if (0xFF == (temp & 0xFF))                                         \
          PC = (bank_readbyte(temp & 0xFF00) << 8) | bank_readbyte(temp); \
       else                                                               \
@@ -678,8 +620,7 @@
       JUMP(PC - 1);    \
       ADD_CYCLES(6);   \
    }
-
-/* undocumented */
+ 
 #define LAS(cycles, read_func) \
    {                           \
       read_func(data);         \
@@ -687,8 +628,7 @@
       SET_NZ_FLAGS(A);         \
       ADD_CYCLES(cycles);      \
    }
-
-/* undocumented */
+ 
 #define LAX(cycles, read_func) \
    {                           \
       read_func(A);            \
@@ -735,8 +675,7 @@
       SET_NZ_FLAGS(A); \
       ADD_CYCLES(2);   \
    }
-
-/* undocumented */
+ 
 #define LXA(cycles, read_func)     \
    {                               \
       read_func(data);             \
@@ -765,8 +704,7 @@
    }
 
 #define PHP()                                 \
-   {                                          \
-      /* B flag is pushed on stack as well */ \
+   {                                          \ 
       PUSH(COMBINE_FLAGS() | B_FLAG);         \
       ADD_CYCLES(3);                          \
    }
@@ -784,8 +722,7 @@
       SCATTER_FLAGS(btemp); \
       ADD_CYCLES(4);        \
    }
-
-/* undocumented */
+ 
 #define RLA(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr, data);                     \
@@ -797,8 +734,7 @@
       SET_NZ_FLAGS(A);                           \
       ADD_CYCLES(cycles);                        \
    }
-
-/* 9-bit rotation (carry flag used for rollover) */
+ 
 #define ROL(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr, data);                     \
@@ -838,8 +774,7 @@
       SET_NZ_FLAGS(A);      \
       ADD_CYCLES(2);        \
    }
-
-/* undocumented */
+ 
 #define RRA(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr, data);                     \
@@ -871,8 +806,7 @@
       PC = (PC | (PULL() << 8)) + 1; \
       ADD_CYCLES(6);                 \
    }
-
-/* undocumented */
+ 
 #define SAX(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr);                           \
@@ -880,8 +814,7 @@
       write_func(addr, data);                    \
       ADD_CYCLES(cycles);                        \
    }
-
-/* Warning! NES CPU has no decimal mode, so by default this does no BCD! */
+ 
 #ifdef NES6502_DECIMAL
 #define SBC(cycles, read_func)                           \
    {                                                     \
@@ -930,9 +863,8 @@
       SET_NZ_FLAGS(A);                         \
       ADD_CYCLES(cycles);                      \
    }
-#endif /* NES6502_DECIMAL */
-
-/* undocumented */
+#endif 
+ 
 #define SBX(cycles, read_func)        \
    {                                  \
       read_func(data);                \
@@ -960,8 +892,7 @@
       i_flag = 1;    \
       ADD_CYCLES(2); \
    }
-
-/* undocumented */
+ 
 #define SHA(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr);                           \
@@ -969,8 +900,7 @@
       write_func(addr, data);                    \
       ADD_CYCLES(cycles);                        \
    }
-
-/* undocumented */
+ 
 #define SHS(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr);                           \
@@ -979,8 +909,7 @@
       write_func(addr, data);                    \
       ADD_CYCLES(cycles);                        \
    }
-
-/* undocumented */
+ 
 #define SHX(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr);                           \
@@ -988,8 +917,7 @@
       write_func(addr, data);                    \
       ADD_CYCLES(cycles);                        \
    }
-
-/* undocumented */
+ 
 #define SHY(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr);                           \
@@ -997,8 +925,7 @@
       write_func(addr, data);                    \
       ADD_CYCLES(cycles);                        \
    }
-
-/* undocumented */
+ 
 #define SLO(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr, data);                     \
@@ -1009,8 +936,7 @@
       SET_NZ_FLAGS(A);                           \
       ADD_CYCLES(cycles);                        \
    }
-
-/* undocumented */
+ 
 #define SRE(cycles, read_func, write_func, addr) \
    {                                             \
       read_func(addr, data);                     \
@@ -1056,8 +982,7 @@
       SET_NZ_FLAGS(Y); \
       ADD_CYCLES(2);   \
    }
-
-/* undocumented (triple-NOP) */
+ 
 #define TOP()        \
    {                 \
       PC += 2;       \
@@ -1090,64 +1015,50 @@
       SET_NZ_FLAGS(A); \
       ADD_CYCLES(2);   \
    }
-
-/* internal CPU context */
+ 
 static nes6502_context cpu;
-static int remaining_cycles = 0; /* so we can release timeslice */
-/* memory region pointers */
+static int remaining_cycles = 0; 
 static uint8 *ram = NULL, *stack = NULL;
 static uint8 null_page[NES6502_BANKSIZE];
-
-/*
-** Zero-page helper macros
-*/
-
+ 
 #define ZP_READBYTE(addr) ram[(addr)]
 #define ZP_WRITEBYTE(addr, value) ram[(addr)] = (uint8)(value)
 
 #ifdef HOST_LITTLE_ENDIAN
-
-/* NOTE: following two functions will fail on architectures
-** which do not support byte alignment
-*/
+ 
 INLINE uint32 zp_readword(register uint8 address)
 {
    return (uint32)(*(uint16 *)(ram + address));
 }
 
 INLINE uint32 bank_readword(register uint32 address)
-{
-   /* technically, this should fail if the address is $xFFF, but
-   ** any code that does this would be suspect anyway, as it would
-   ** be fetching a word across page boundaries, which only would
-   ** make sense if the banks were physically consecutive.
-   */
+{ 
    return (uint32)(*(uint16 *)(cpu.mem_page[address >> NES6502_BANKSHIFT] + (address & NES6502_BANKMASK)));
 }
 
-#else /* !HOST_LITTLE_ENDIAN */
+#else  
 
 INLINE uint32 zp_readword(register uint8 address)
 {
 #ifdef TARGET_CPU_PPC
    return __lhbrx(ram, address);
-#else  /* !TARGET_CPU_PPC */
+#else   
    uint32 x = (uint32) * (uint16 *)(ram + address);
    return (x << 8) | (x >> 8);
-#endif /* !TARGET_CPU_PPC */
+#endif  
 }
 
 INLINE uint32 bank_readword(register uint32 address)
 {
 #ifdef TARGET_CPU_PPC
    return __lhbrx(cpu.mem_page[address >> NES6502_BANKSHIFT], address & NES6502_BANKMASK);
-#else  /* !TARGET_CPU_PPC */
+#else   
    uint32 x = (uint32) * (uint16 *)(cpu.mem_page[address >> NES6502_BANKSHIFT] + (address & NES6502_BANKMASK));
    return (x << 8) | (x >> 8);
-#endif /* !TARGET_CPU_PPC */
+#endif  
 }
 
-#endif /* !HOST_LITTLE_ENDIAN */
+#endif 
 
 INLINE uint8 bank_readbyte(register uint32 address)
 {
@@ -1158,24 +1069,19 @@ INLINE void bank_writebyte(register uint32 address, register uint8 value)
 {
    cpu.mem_page[address >> NES6502_BANKSHIFT][address & NES6502_BANKMASK] = value;
 }
-
-/* read a byte of 6502 memory */
+ 
 static uint8 mem_readbyte(uint32 address)
 {
    nes6502_memread *mr;
-
-   /* TODO: following 2 cases are N2A03-specific */
+ 
    if (address < 0x800)
-   {
-      /* RAM */
+   { 
       return ram[address];
    }
    else if (address >= 0x8000)
-   {
-      /* always paged memory */
+   { 
       return bank_readbyte(address);
-   }
-   /* check memory range handlers */
+   } 
    else
    {
       for (mr = cpu.read_handler; mr->min_range != 0xFFFFFFFF; mr++)
@@ -1183,24 +1089,19 @@ static uint8 mem_readbyte(uint32 address)
          if (address >= mr->min_range && address <= mr->max_range)
             return mr->read_func(address);
       }
-   }
-
-   /* return paged memory */
+   } 
    return bank_readbyte(address);
 }
-
-/* write a byte of data to 6502 memory */
+ 
 static void mem_writebyte(uint32 address, uint8 value)
 {
    nes6502_memwrite *mw;
-
-   /* RAM */
+ 
    if (address < 0x800)
    {
       ram[address] = value;
       return;
-   }
-   /* check memory range handlers */
+   } 
    else
    {
       for (mw = cpu.write_handler; mw->min_range != 0xFFFFFFFF; mw++)
@@ -1211,13 +1112,10 @@ static void mem_writebyte(uint32 address, uint8 value)
             return;
          }
       }
-   }
-
-   /* write to paged memory */
+   } 
    bank_writebyte(address, value);
 }
-
-/* set the current context */
+ 
 void nes6502_setcontext(nes6502_context *context)
 {
    int loop;
@@ -1225,19 +1123,17 @@ void nes6502_setcontext(nes6502_context *context)
    ASSERT(context);
 
    cpu = *context;
-
-   /* set dead page for all pages not pointed at anything */
+ 
    for (loop = 0; loop < NES6502_NUMBANKS; loop++)
    {
       if (NULL == cpu.mem_page[loop])
          cpu.mem_page[loop] = null_page;
    }
 
-   ram = cpu.mem_page[0]; /* quick zero-page/RAM references */
+   ram = cpu.mem_page[0];  
    stack = ram + STACK_OFFSET;
 }
-
-/* get the current context */
+ 
 void nes6502_getcontext(nes6502_context *context)
 {
    int loop;
@@ -1245,22 +1141,19 @@ void nes6502_getcontext(nes6502_context *context)
    ASSERT(context);
 
    *context = cpu;
-
-   /* reset dead pages to null */
+ 
    for (loop = 0; loop < NES6502_NUMBANKS; loop++)
    {
       if (null_page == context->mem_page[loop])
          context->mem_page[loop] = NULL;
    }
 }
-
-/* DMA a byte of data from ROM */
+ 
 uint8 nes6502_getbyte(uint32 address)
 {
    return bank_readbyte(address);
 }
-
-/* get number of elapsed cycles */
+ 
 uint32 nes6502_getcycles(bool reset_flag)
 {
    uint32 cycles = cpu.total_cycles;
@@ -1304,38 +1197,31 @@ uint32 nes6502_getcycles(bool reset_flag)
    nofrendo_log_printf(nes6502_disasm(PC, COMBINE_FLAGS(), A, X, Y, S)); \
    goto *opcode_table[bank_readbyte(PC++)];
 
-#else /* !NES6520_DISASM */
+#else  
 
 #define OPCODE_END            \
    if (remaining_cycles <= 0) \
       goto end_execute;       \
    goto *opcode_table[bank_readbyte(PC++)];
 
-#endif /* !NES6502_DISASM */
+#endif  
 
-#else /* !NES6502_JUMPTABLE */
+#else  
 #define OPCODE_BEGIN(xx) case 0x##xx:
 #define OPCODE_END break;
-#endif /* !NES6502_JUMPTABLE */
-
-/* Execute instructions until count expires
-**
-** Returns the number of cycles *actually* executed, which will be
-** anywhere from zero to timeslice_cycles + 6
-*/
+#endif  
+ 
 int nes6502_execute(int timeslice_cycles)
 {
    int old_cycles = cpu.total_cycles;
 
-   uint32 temp, addr;  /* for macros */
-   uint8 btemp, baddr; /* for macros */
+   uint32 temp, addr;  
+   uint8 btemp, baddr;  
    uint8 data;
-
-   /* flags */
+ 
    uint8 n_flag, v_flag, b_flag;
    uint8 d_flag, i_flag, z_flag, c_flag;
-
-   /* local copies of regs */
+ 
    uint32 PC;
    uint8 A, X, Y, S;
 
@@ -1376,13 +1262,12 @@ int nes6502_execute(int timeslice_cycles)
            &&opF0, &&opF1, &&opF2, &&opF3, &&opF4, &&opF5, &&opF6, &&opF7,
            &&opF8, &&opF9, &&opFA, &&opFB, &&opFC, &&opFD, &&opFE, &&opFF};
 
-#endif /* NES6502_JUMPTABLE */
+#endif  
 
    remaining_cycles = timeslice_cycles;
 
    GET_GLOBAL_REGS();
-
-   /* check for DMA cycle burning */
+ 
    if (cpu.burn_cycles && remaining_cycles > 0)
    {
       int burn_for;
@@ -1399,29 +1284,26 @@ int nes6502_execute(int timeslice_cycles)
       ADD_CYCLES(INT_CYCLES);
    }
 
-#ifdef NES6502_JUMPTABLE
-   /* fetch first instruction */
+#ifdef NES6502_JUMPTABLE 
    OPCODE_END
 
-#else /* !NES6502_JUMPTABLE */
-
-   /* Continue until we run out of cycles */
+#else  
+ 
    while (remaining_cycles > 0)
    {
 #ifdef NES6502_DISASM
       nofrendo_log_printf(nes6502_disasm(PC, COMBINE_FLAGS(), A, X, Y, S));
-#endif /* NES6502_DISASM */
-
-      /* Fetch and execute instruction */
+#endif  
+ 
       switch (bank_readbyte(PC++))
       {
-#endif /* !NES6502_JUMPTABLE */
+#endif  
 
-   OPCODE_BEGIN(00) /* BRK */
+   OPCODE_BEGIN(00)  
    BRK();
    OPCODE_END
 
-   OPCODE_BEGIN(01) /* ORA ($nn,X) */
+   OPCODE_BEGIN(01)  
    ORA(6, INDIR_X_BYTE);
    OPCODE_END
 
@@ -1437,12 +1319,11 @@ int nes6502_execute(int timeslice_cycles)
    OPCODE_BEGIN(B2) /* JAM */
    OPCODE_BEGIN(D2) /* JAM */
    OPCODE_BEGIN(F2) /* JAM */
-   JAM();
-   /* kill the CPU */
+   JAM(); 
    remaining_cycles = 0;
    OPCODE_END
 
-   OPCODE_BEGIN(03) /* SLO ($nn,X) */
+   OPCODE_BEGIN(03)  
    SLO(8, INDIR_X, mem_writebyte, addr);
    OPCODE_END
 
@@ -2347,37 +2228,32 @@ int nes6502_execute(int timeslice_cycles)
 #ifdef NES6502_JUMPTABLE
 end_execute:
 
-#else  /* !NES6502_JUMPTABLE */
+#else   
       }
    }
-#endif /* !NES6502_JUMPTABLE */
-
-   /* store local copy of regs */
+#endif  
+ 
    STORE_LOCAL_REGS();
-
-   /* Return our actual amount of executed cycles */
+ 
    return (cpu.total_cycles - old_cycles);
 }
-
-/* Issue a CPU Reset */
+ 
 void nes6502_reset(void)
 {
-   cpu.p_reg = Z_FLAG | R_FLAG | I_FLAG;     /* Reserved bit always 1 */
-   cpu.int_pending = 0;                      /* No pending interrupts */
-   cpu.int_latency = 0;                      /* No latent interrupts */
-   cpu.pc_reg = bank_readword(RESET_VECTOR); /* Fetch reset vector */
+   cpu.p_reg = Z_FLAG | R_FLAG | I_FLAG; 
+   cpu.int_pending = 0;                     
+   cpu.int_latency = 0;                    
+   cpu.pc_reg = bank_readword(RESET_VECTOR);  
    cpu.burn_cycles = RESET_CYCLES;
    cpu.jammed = false;
 }
-
-/* following macro is used for below 2 functions */
+ 
 #define DECLARE_LOCAL_REGS       \
    uint32 PC;                    \
    uint8 A, X, Y, S;             \
    uint8 n_flag, v_flag, b_flag; \
    uint8 d_flag, i_flag, z_flag, c_flag;
-
-/* Non-maskable interrupt */
+ 
 void nes6502_nmi(void)
 {
    DECLARE_LOCAL_REGS
@@ -2390,8 +2266,7 @@ void nes6502_nmi(void)
       STORE_LOCAL_REGS();
    }
 }
-
-/* Interrupt request */
+ 
 void nes6502_irq(void)
 {
    DECLARE_LOCAL_REGS
@@ -2411,14 +2286,12 @@ void nes6502_irq(void)
       STORE_LOCAL_REGS();
    }
 }
-
-/* Set dead cycle period */
+ 
 void nes6502_burn(int cycles)
 {
    cpu.burn_cycles += cycles;
 }
-
-/* Release our timeslice */
+ 
 void nes6502_release(void)
 {
    remaining_cycles = 0;
