@@ -6,8 +6,7 @@
 
 static uint8 latch[2];
 static uint8 regs[4];
-
-/* Used when tile $FD/$FE is accessed */
+ 
 static void mmc10_latchfunc(uint32 address, uint8 value)
 {
    if (0xFD == value || 0xFE == value)
@@ -28,9 +27,7 @@ static void mmc10_latchfunc(uint32 address, uint8 value)
       mmc_bankvrom(4, address, regs[reg]);
    }
 }
-
-/* mapper 10: MMC4 */
-/* MMC4: Fire Emblem */
+ 
 static void map10_write(uint32 address, uint8 value)
 {
    switch ((address & 0xF000) >> 12)
@@ -65,9 +62,9 @@ static void map10_write(uint32 address, uint8 value)
 
    case 0xF:
       if (value & 1)
-         ppu_mirror(0, 0, 1, 1); /* horizontal */
+         ppu_mirror(0, 0, 1, 1);  
       else
-         ppu_mirror(0, 1, 0, 1); /* vertical */
+         ppu_mirror(0, 1, 0, 1); 
       break;
 
    default:
