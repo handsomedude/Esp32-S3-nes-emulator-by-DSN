@@ -1,8 +1,7 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
 #include "nes_ppu.h"
-
-/* mapper 15: Contra 100-in-1 */
+ 
 static void map15_write(uint32 address, uint8 value)
 {
    int bank = value & 0x3F;
@@ -17,9 +16,9 @@ static void map15_write(uint32 address, uint8 value)
       mmc_bankrom(8, 0xE000, ((bank + 1) << 1) + (swap ^ 1));
 
       if (value & 0x40)
-         ppu_mirror(0, 0, 1, 1); /* horizontal */
+         ppu_mirror(0, 0, 1, 1);  
       else
-         ppu_mirror(0, 1, 0, 1); /* vertical */
+         ppu_mirror(0, 1, 0, 1);  
       break;
 
    case 1:
@@ -49,9 +48,9 @@ static void map15_write(uint32 address, uint8 value)
       mmc_bankrom(8, 0xE000, (bank << 1) + (swap ^ 1));
 
       if (value & 0x40)
-         ppu_mirror(0, 0, 1, 1); /* horizontal */
+         ppu_mirror(0, 0, 1, 1);  
       else
-         ppu_mirror(0, 1, 0, 1); /* vertical */
+         ppu_mirror(0, 1, 0, 1);  
       break;
 
    default:
