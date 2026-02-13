@@ -3,8 +3,7 @@
 #include "fds_snd.h"
 
 static int32 fds_incsize = 0;
-
-/* mix sound channels together */
+ 
 static int32 fds_process(void)
 {
    int32 output;
@@ -12,15 +11,13 @@ static int32 fds_process(void)
 
    return output;
 }
-
-/* write to registers */
+ 
 static void fds_write(uint32 address, uint8 value)
 {
    UNUSED(address);
    UNUSED(value);
 }
-
-/* reset state of vrcvi sound channels */
+ 
 static void fds_reset(void)
 {
    apu_t apu;
