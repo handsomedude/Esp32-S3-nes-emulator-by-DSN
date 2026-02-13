@@ -10,10 +10,8 @@
 #include "gui.h"
 #include "vid_drv.h"
 
-/* emulated system includes */
 #include "nes.h"
 
-/* our global machine structure */
 static struct
 {
    char *filename, *nextfilename;
@@ -28,14 +26,13 @@ static struct
 
    bool quit;
 } console;
-
-/* our happy little timer ISR */
+ 
 volatile int nofrendo_ticks = 0;
 static void timer_isr(void)
 {
    nofrendo_ticks++;
 }
-static void timer_isr_end(void) {} /* code marker for djgpp */
+static void timer_isr_end(void) {}  
 
 static void shutdown_everything(void)
 {
@@ -56,8 +53,7 @@ static void shutdown_everything(void)
    vid_shutdown();
    nofrendo_log_shutdown();
 }
-
-/* End the current context */
+ 
 void main_eject(void)
 {
    switch (console.type)
@@ -78,15 +74,13 @@ void main_eject(void)
    }
    console.type = system_unknown;
 }
-
-/* Act on the user's quit requests */
+ 
 void main_quit(void)
 {
    console.quit = true;
 
    main_eject();
-
-   /* if there's a pending filename / system, clear */
+ 
    if (NULL != console.nextfilename)
    {
       NOFRENDO_FREE(console.nextfilename);
@@ -94,8 +88,7 @@ void main_quit(void)
    }
    console.nexttype = system_unknown;
 }
-
-/* brute force system autodetection */
+ 
 static system_t detect_systemtype(const char *filename)
 {
    if (NULL == filename)
@@ -103,8 +96,7 @@ static system_t detect_systemtype(const char *filename)
 
    if (0 == nes_isourfile(filename))
       return system_nes;
-
-   /* can't figure out what this thing is */
+ 
    return system_unknown;
 }
 
@@ -115,18 +107,15 @@ static int install_timer(int hertz)
                            (void *)&nofrendo_ticks,
                            sizeof(nofrendo_ticks));
 }
-
-/* This assumes there is no current context */
+ 
 static int internal_insert(const char *filename, system_t type)
-{
-   /* autodetect system type? */
+{ 
    if (system_autodetect == type)
       type = detect_systemtype(filename);
 
    console.filename = NOFRENDO_STRDUP(filename);
    console.type = type;
-
-   /* set up the event system for this system type */
+ 
    event_set_system(type);
 
    switch (console.type)
@@ -157,15 +146,13 @@ static int internal_insert(const char *filename, system_t type)
       nofrendo_log_printf("system type unknown, playing nofrendo NES intro.\n");
       if (NULL != console.filename)
          NOFRENDO_FREE(console.filename);
-
-      /* oooh, recursion */
+ 
       return internal_insert(filename, system_nes);
    }
 
    return 0;
 }
-
-/* This tells main_loop to load this next image */
+ 
 void main_insert(const char *filename, system_t type)
 {
    console.nextfilename = NOFRENDO_STRDUP(filename);
@@ -175,8 +162,7 @@ void main_insert(const char *filename, system_t type)
 }
 
 int nofrendo_main(int argc, char *argv[])
-{
-   /* initialize our system structure */
+{ 
    console.filename = NULL;
    console.nextfilename = NULL;
    console.type = system_unknown;
@@ -191,30 +177,51 @@ int nofrendo_main(int argc, char *argv[])
 
    return osd_main(argc, argv);
 }
-
-/* This is the final leg of main() */
+ 
 int main_loop(const char *filename, system_t type)
 {
    vidinfo_t video;
+ 
+   atexit(shutdown_everything);
+   nofrendo_log_printf("[BOOT] main_loop start\n");
 
-   /* register shutdown, in case of assertions, etc. */
-     atexit(shutdown_everything);
-
+   nofrendo_log_printf("[BOOT] config.open...\n");
    if (config.open())
+   {
+      nofrendo_log_printf("[BOOT] config.open FAILED\n");
       return -1;
+   }
+   nofrendo_log_printf("[BOOT] config.open OK\n");
 
+   nofrendo_log_printf("[BOOT] osd_init...\n");
    if (osd_init())
+   {
+      nofrendo_log_printf("[BOOT] osd_init FAILED\n");
       return -1;
+   }
+   nofrendo_log_printf("[BOOT] osd_init OK\n");
 
+   nofrendo_log_printf("[BOOT] gui_init...\n");
    if (gui_init())
+   {
+      nofrendo_log_printf("[BOOT] gui_init FAILED\n");
       return -1;
+   }
+   nofrendo_log_printf("[BOOT] gui_init OK\n");
 
+   nofrendo_log_printf("[BOOT] osd_getvideoinfo...\n");
    osd_getvideoinfo(&video);
+   nofrendo_log_printf("[BOOT] vid_init...\n");
    if (vid_init(video.default_width, video.default_height, video.driver))
+   {
+      nofrendo_log_printf("[BOOT] vid_init FAILED\n");
       return -1;
+   }
+   nofrendo_log_printf("[BOOT] vid_init OK\n");
 
    console.nextfilename = NOFRENDO_STRDUP(filename);
    console.nexttype = type;
+   nofrendo_log_printf("[BOOT] entering main loop with %s\n", console.nextfilename ? console.nextfilename : "(null)");
 
    while (false == console.quit)
    {
