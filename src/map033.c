@@ -1,8 +1,7 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
 #include "nes_ppu.h"
-
-/* mapper 33: Taito TC0190*/
+ 
 static void map33_write(uint32 address, uint8 value)
 {
    int page = (address >> 13) & 3;
@@ -10,7 +9,7 @@ static void map33_write(uint32 address, uint8 value)
 
    switch (page)
    {
-   case 0: /* $800X */
+   case 0:  
       switch (reg)
       {
       case 0:
@@ -31,25 +30,24 @@ static void map33_write(uint32 address, uint8 value)
       }
       break;
 
-   case 1: /* $A00X */
+   case 1: 
    {
       int loc = 0x1000 + (reg << 10);
       mmc_bankvrom(1, loc, value);
    }
    break;
 
-   case 2: /* $C00X */
-   case 3: /* $E00X */
+   case 2:  
+   case 3: 
       switch (reg)
       {
       case 0:
          /* irqs maybe ? */
          //break;
 
-      case 1:
-         /* this doesn't seem to work just right */
+      case 1: 
          if (value & 1)
-            ppu_mirror(0, 0, 1, 1); /* horizontal */
+            ppu_mirror(0, 0, 1, 1); 
          else
             ppu_mirror(0, 1, 0, 1);
          break;
