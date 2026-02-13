@@ -3,8 +3,7 @@
 #include "nes_ppu.h"
 
 static int select_c000 = 0;
-
-/* mapper 32: Irem G-101 */
+ 
 static void map32_write(uint32 address, uint8 value)
 {
    switch (address >> 12)
@@ -18,9 +17,9 @@ static void map32_write(uint32 address, uint8 value)
 
    case 0x09:
       if (value & 1)
-         ppu_mirror(0, 0, 1, 1); /* horizontal */
+         ppu_mirror(0, 0, 1, 1);  
       else
-         ppu_mirror(0, 1, 0, 1); /* vertical */
+         ppu_mirror(0, 1, 0, 1);  
 
       select_c000 = (value & 0x02);
       break;
