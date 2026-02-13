@@ -3,8 +3,7 @@
 
 #include "osd.h"
 #include "bitmap.h"
-
-/* Got these out of ZSoft's document */
+ 
 typedef struct pcxheader_s
 {
    uint8 Manufacturer __PACKED__;
