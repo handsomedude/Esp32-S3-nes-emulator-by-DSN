@@ -1,11 +1,7 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
 #include "nes_ppu.h"
-
-/* mapper 70: Arkanoid II, Kamen Rider Club, etc. */
-/* ($8000-$FFFF) D6-D4 = switch $8000-$BFFF */
-/* ($8000-$FFFF) D3-D0 = switch PPU $0000-$1FFF */
-/* ($8000-$FFFF) D7 = switch mirroring */
+ 
 static void map70_write(uint32 address, uint8 value)
 {
    UNUSED(address);
@@ -16,9 +12,9 @@ static void map70_write(uint32 address, uint8 value)
    if (mmc_getinfo()->flags & ROM_FLAG_FOURSCREEN)
    {
       if (value & 0x80)
-         ppu_mirror(0, 0, 1, 1); /* horiz */
+         ppu_mirror(0, 0, 1, 1);  
       else
-         ppu_mirror(0, 1, 0, 1); /* vert */
+         ppu_mirror(0, 1, 0, 1);  
    }
    else
    {
