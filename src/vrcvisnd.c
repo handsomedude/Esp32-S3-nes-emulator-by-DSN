@@ -38,23 +38,16 @@ typedef struct vrcvisnd_s
 } vrcvisnd_t;
 
 static vrcvisnd_t vrcvi;
-
-/* VRCVI rectangle wave generation */
+ 
 static int32 vrcvi_rectangle(vrcvirectangle_t *chan)
-{
-   /* reg0: 0-3=volume, 4-6=duty cycle
-   ** reg1: 8 bits of freq
-   ** reg2: 0-3=high freq, 7=enable
-   */
-
-   chan->accum -= vrcvi.incsize; /* # of clocks per wave cycle */
+{ 
+   chan->accum -= vrcvi.incsize;  
    while (chan->accum < 0)
    {
       chan->accum += chan->freq;
       chan->adder = (chan->adder + 1) & 0x0F;
    }
-
-   /* return if not enabled */
+ 
    if (false == chan->enabled)
       return 0;
 
@@ -63,16 +56,10 @@ static int32 vrcvi_rectangle(vrcvirectangle_t *chan)
    else
       return chan->volume;
 }
-
-/* VRCVI sawtooth wave generation */
+ 
 static int32 vrcvi_sawtooth(vrcvisawtooth_t *chan)
-{
-   /* reg0: 0-5=phase accumulator bits
-   ** reg1: 8 bits of freq
-   ** reg2: 0-3=high freq, 7=enable
-   */
-
-   chan->accum -= vrcvi.incsize; /* # of clocks per wav cycle */
+{ 
+   chan->accum -= vrcvi.incsize; 
    while (chan->accum < 0)
    {
       chan->accum += chan->freq;
@@ -85,15 +72,13 @@ static int32 vrcvi_sawtooth(vrcvisawtooth_t *chan)
          chan->output_acc = 0;
       }
    }
-
-   /* return if not enabled */
+ 
    if (false == chan->enabled)
       return 0;
 
    return (chan->output_acc >> 3) << 9;
 }
-
-/* mix vrcvi sound channels together */
+ 
 static int32 vrcvi_process(void)
 {
    int32 output;
@@ -104,8 +89,7 @@ static int32 vrcvi_process(void)
 
    return output;
 }
-
-/* write to registers */
+ 
 static void vrcvi_write(uint32 address, uint8 value)
 {
    int chan = (address >> 12) - 9;
@@ -152,18 +136,15 @@ static void vrcvi_write(uint32 address, uint8 value)
       break;
    }
 }
-
-/* reset state of vrcvi sound channels */
+ 
 static void vrcvi_reset(void)
 {
    int i;
    apu_t apu;
-
-   /* get the phase period from the apu */
+ 
    apu_getcontext(&apu);
    vrcvi.incsize = apu.cycle_rate;
-
-   /* preload regs */
+ 
    for (i = 0; i < 3; i++)
    {
       vrcvi_write(0x9000 + i, 0);
@@ -174,16 +155,16 @@ static void vrcvi_reset(void)
 
 static apu_memwrite vrcvi_memwrite[] =
     {
-        {0x9000, 0x9002, vrcvi_write}, /* vrc6 */
+        {0x9000, 0x9002, vrcvi_write}, 
         {0xA000, 0xA002, vrcvi_write},
         {0xB000, 0xB002, vrcvi_write},
         {-1, -1, NULL}};
 
 apuext_t vrcvi_ext =
     {
-        NULL, /* no init */
-        NULL, /* no shutdown */
+        NULL, 
+        NULL, 
         vrcvi_reset,
         vrcvi_process,
-        NULL, /* no reads */
+        NULL, 
         vrcvi_memwrite};
