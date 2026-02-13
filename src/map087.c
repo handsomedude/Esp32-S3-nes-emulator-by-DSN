@@ -3,22 +3,14 @@
 #include "nes.h"
 #include "libsnss.h"
 #include "log.h"
-
-/******************************************/
-/* Mapper #87 write handler ($6000-$7FFF) */
-/******************************************/
+ 
 static void map87_write(uint32 address, uint8 value)
-{
-   /* Within range, address written to is irrelevant */
-   UNUSED(address);
-
-   /* Very simple: 8K CHR page is selected by D1 */
+{ 
+   UNUSED(address); 
    if (value & 0x02)
       mmc_bankvrom(8, 0x0000, 0x01);
    else
-      mmc_bankvrom(8, 0x0000, 0x00);
-
-   /* Done */
+      mmc_bankvrom(8, 0x0000, 0x00); 
    return;
 }
 
