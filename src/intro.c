@@ -312,13 +312,11 @@ static uint8 intro_code[301] =
         0x3D,
         0x20,
 };
-
-/* interrupt vectors (FFFAh - FFFFh) */
+ 
 static uint8 intro_vec[6] =
     {
         0x27, 0x81, 0x00, 0x80, 0x27, 0x81};
-
-/* graphics */
+ 
 static uint8 intro_vrom[4096] =
     {
         0x00,
@@ -4425,14 +4423,9 @@ static uint8 *intro_getrom(void)
 
    rom = NOFRENDO_MALLOC(CODE_SIZE);
    if (NULL != rom)
-   {
-      /* good measure */
+   { 
       memset(rom, 0, CODE_SIZE);
-
-      /* copy in the code */
       memcpy(rom, intro_code, sizeof(intro_code));
-
-      /* copy in the interrupt vectors */
       memcpy(rom + (CODE_SIZE - sizeof(intro_vec)), intro_vec, sizeof(intro_vec));
    }
 
