@@ -1,8 +1,6 @@
 #include "noftypes.h"
 #include "nes_mmc.h"
-
-/* mapper 231: NINA-07, used in Wally Bear and the NO! Gang */
-
+ 
 static void map231_init(void)
 {
    mmc_bankrom(32, 0x8000, MMC_LASTBANK);
