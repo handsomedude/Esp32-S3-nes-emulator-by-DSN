@@ -1,7 +1,6 @@
 #ifndef _NES_APU_H_
 #define _NES_APU_H_
-
-/* define this for realtime generated noise */
+ 
 #define REALTIME_NOISE
 
 #define APU_WRA0 0x4000
@@ -24,8 +23,7 @@
 #define APU_WRE3 0x4013
 
 #define APU_SMASK 0x4015
-
-/* length of generated noise */
+ 
 #define APU_NOISE_32K 0x7FFF
 #define APU_NOISE_93 93
 
@@ -50,8 +48,7 @@ typedef struct rectangle_s
    uint8 sweep_shifts;
    uint8 sweep_length;
    bool sweep_inc;
-
-   /* this may not be necessary in the future */
+ 
    int32 freq_limit;
    int32 env_phase;
    int32 env_delay;
@@ -76,7 +73,7 @@ typedef struct triangle_s
 
    bool holdnote;
    bool counter_started;
-   /* quasi-hack */
+ 
    int write_latency;
 
    int vbl_length;
@@ -108,14 +105,13 @@ typedef struct noise_s
 #else
    bool short_sample;
    int cur_pos;
-#endif /* REALTIME_NOISE */
+#endif  
 } noise_t;
 
 typedef struct dmc_s
 {
    uint8 regs[4];
-
-   /* bodge for timestamp queue */
+ 
    bool enabled;
 
    float accum;
@@ -152,8 +148,7 @@ typedef struct
    uint32 min_range, max_range;
    void (*write_func)(uint32 address, uint8 value);
 } apu_memwrite;
-
-/* external sound chip stuff */
+ 
 typedef struct apuext_s
 {
    int (*init)(void);
@@ -172,7 +167,7 @@ typedef struct apu_s
    dmc_t dmc;
    uint8 enable_reg;
 
-   void *buffer; /* pointer to output buffer */
+   void *buffer;  
    int num_samples;
 
    uint8 mix_enable;
@@ -188,17 +183,15 @@ typedef struct apu_s
    void (*process)(void *buffer, int num_samples);
    void (*irq_callback)(void);
    uint8 (*irqclear_callback)(void);
-
-   /* external sound chip */
+ 
    apuext_t *ext;
 } apu_t;
 
 #ifdef __cplusplus
 extern "C"
 {
-#endif /* __cplusplus */
-
-   /* Function prototypes */
+#endif  
+ 
    extern void apu_setcontext(apu_t *src_apu);
    extern void apu_getcontext(apu_t *dest_apu);
 
