@@ -3,13 +3,10 @@
 #include "noftypes.h"
 #include "mmc5_snd.h"
 #include "nes_apu.h"
-
-/* TODO: encapsulate apu/mmc5 rectangle */
-
+  
 #define APU_OVERSAMPLE
 #define APU_VOLUME_DECAY(x) ((x) -= ((x) >> 7))
-
-/* look up table madness */
+ 
 static int32 decay_lut[16];
 static int vbl_lut[32];
  
@@ -76,25 +73,17 @@ static int32 mmc5_rectangle(mmc5rectangle_t *chan)
 #ifdef APU_OVERSAMPLE
    int num_times;
    int32 total;
-#endif /* APU_OVERSAMPLE */
-
-   /* reg0: 0-3=volume, 4=envelope, 5=hold, 6-7=duty cycle
-   ** reg1: 0-2=sweep shifts, 3=sweep inc/dec, 4-6=sweep length, 7=sweep on
-   ** reg2: 8 bits of freq
-   ** reg3: 0-2=high freq, 7-4=vbl length counter
-   */
+#endif 
 
    APU_VOLUME_DECAY(chan->output_vol);
 
    if (false == chan->enabled || 0 == chan->vbl_length)
       return MMC5_RECTANGLE_OUTPUT;
-
-   /* vbl length counter */
+ 
    if (false == chan->holdnote)
       chan->vbl_length--;
-
-   /* envelope decay at a rate of (env_delay + 1) / 240 secs */
-   chan->env_phase -= 4; /* 240/60 */
+ 
+   chan->env_phase -= 4;  
    while (chan->env_phase < 0)
    {
       chan->env_phase += chan->env_delay;
@@ -108,7 +97,7 @@ static int32 mmc5_rectangle(mmc5rectangle_t *chan)
    if (chan->freq < 4)
       return MMC5_RECTANGLE_OUTPUT;
 
-   chan->accum -= mmc5.incsize; /* # of cycles per sample */
+   chan->accum -= mmc5.incsize; 
    if (chan->accum >= 0)
       return MMC5_RECTANGLE_OUTPUT;
 
@@ -116,7 +105,7 @@ static int32 mmc5_rectangle(mmc5rectangle_t *chan)
    num_times = total = 0;
 
    if (chan->fixed_envelope)
-      output = chan->volume << 8; /* fixed volume */
+      output = chan->volume << 8; 
    else
       output = (chan->env_vol ^ 0x0F) << 8;
 #endif
@@ -140,7 +129,7 @@ static int32 mmc5_rectangle(mmc5rectangle_t *chan)
    chan->output_vol = total / num_times;
 #else
    if (chan->fixed_envelope)
-      output = chan->volume << 8; /* fixed volume */
+      output = chan->volume << 8;  
    else
       output = (chan->env_vol ^ 0x0F) << 8;
 
@@ -171,8 +160,7 @@ static uint8 mmc5_read(uint32 address)
       return 0xFF;
    }
 }
-
-/* mix vrcvi sound channels together */
+ 
 static int32 mmc5_process(void)
 {
    int32 accum;
@@ -184,15 +172,13 @@ static int32 mmc5_process(void)
 
    return accum;
 }
-
-/* write to registers */
+ 
 static void mmc5_write(uint32 address, uint8 value)
 {
    int chan;
 
    switch (address)
-   {
-   /* rectangles */
+   { 
    case MMC5_WRA0:
    case MMC5_WRB0:
       chan = (address & 4) ? 1 : 0;
@@ -274,22 +260,19 @@ static void mmc5_write(uint32 address, uint8 value)
       break;
 
    case 0x5114:
-   case 0x5115:
-      /* ???? */
+   case 0x5115: 
       break;
 
    default:
       break;
    }
 }
-
-/* reset state of vrcvi sound channels */
+ 
 static void mmc5_reset(void)
 {
    int i;
    apu_t apu;
-
-   /* get the phase period from the apu */
+ 
    apu_getcontext(&apu);
    mmc5.incsize = apu.cycle_rate;
 
@@ -307,12 +290,10 @@ static int mmc5_init(void)
 
    apu_getcontext(&apu);
    num_samples = apu.num_samples;
-
-   /* lut used for enveloping and frequency sweeps */
+ 
    for (i = 0; i < 16; i++)
       decay_lut[i] = num_samples * (i + 1);
-
-   /* used for note length, based on vblanks and size of audio buffer */
+ 
    for (i = 0; i < 32; i++)
       vbl_lut[i] = vbl_length[i] * num_samples;
 
@@ -334,7 +315,7 @@ static apu_memwrite mmc5_memwrite[] =
 apuext_t mmc5_ext =
     {
         mmc5_init,
-        NULL, /* no shutdown */
+        NULL, 
         mmc5_reset,
         mmc5_process,
         mmc5_memread,
