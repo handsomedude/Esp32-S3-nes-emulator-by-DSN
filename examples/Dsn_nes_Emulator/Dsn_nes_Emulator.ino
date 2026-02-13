@@ -1,178 +1,110 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <SD.h>
-#include <TFT_eSPI.h>
+#include <FS.h>
+#include <driver/spi_master.h>
+#include <esp_heap_caps.h>
 #include "hw_config.h"
+#include "tft_driver.h"
+ 
+TFTDriver tft;
 
-TFT_eSPI tft = TFT_eSPI();
-
-void setup_controller();
-extern "C" int nes_get_gamepad_state();
-extern "C" int nofrendo_main(int argc, char *argv[]);
-extern "C" bool vid_preload_rom(const char *path);
-
-// Hardware Masks
-#define HW_MASK_START 0x08
-#define HW_MASK_UP 0x10
-#define HW_MASK_DOWN 0x20
-#define HW_MASK_A 0x01
-
-char *gameToLoad = NULL;
-TaskHandle_t emuTaskHandle = NULL;
-
-void emulator_task(void *param) {
-  char **argv = (char **)malloc(2 * sizeof(char *));
-  argv[0] = strdup("nes");
-  argv[1] = strdup("dummy.nes");
-
-  Serial.println("[TASK] Starting Emulator...");
-  nofrendo_main(2, argv);
-
-  Serial.println("[TASK] Exited");
-  vTaskDelete(NULL);
-}
-
-// Game Selection Menu
-String selectGame() {
-  File root = SD.open("/");
-  if (!root) {
-    tft.fillScreen(TFT_RED);
-    tft.setCursor(0, 0);
-    tft.println("SD Error");
-    while (1) delay(100);
-  }
-
-  String files[20];
-  int fileCount = 0;
-
-  while (fileCount < 20) {
-    File entry = root.openNextFile();
-    if (!entry) break;
-    String fn = entry.name();
-    if (!entry.isDirectory() && (fn.endsWith(".nes") || fn.endsWith(".NES")) && !fn.startsWith(".")) {
-      String path = fn;
-      if (!path.startsWith("/")) path = "/" + path;
-      files[fileCount++] = path;
-    }
-    entry.close();
-  }
-  root.close();
-
-  if (fileCount == 0) return "";
-  if (fileCount == 1) return files[0];
-
-  int selected = 0;
-  int prevSelected = -1;
-
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextSize(2);
-
-  while (1) {
-    if (selected != prevSelected) {
-      tft.fillScreen(TFT_BLACK);
-      tft.setCursor(0, 0);
-      tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-      tft.println("NES Game Select:");
-      tft.drawLine(0, 25, 320, 25, TFT_WHITE);
-      tft.setCursor(0, 40);
-
-      for (int i = 0; i < fileCount; i++) {
-        if (i == selected) tft.setTextColor(TFT_BLACK, TFT_WHITE);
-        else tft.setTextColor(TFT_WHITE, TFT_BLACK);
-
-        tft.println(files[i].substring(1));
-      }
-      prevSelected = selected;
-    }
-
-    int input = nes_get_gamepad_state();
-
-    if (input & HW_MASK_DOWN) {
-      selected++;
-      if (selected >= fileCount) selected = 0;
-      delay(150);
-    }
-    if (input & HW_MASK_UP) {
-      selected--;
-      if (selected < 0) selected = fileCount - 1;
-      delay(150);
-    }
-    if ((input & HW_MASK_START) || (input & HW_MASK_A)) {
-      tft.fillScreen(TFT_BLACK);
-      tft.setCursor(0, 100);
-      tft.setTextDatum(MC_DATUM);
-      tft.setTextColor(TFT_GREEN);
-      tft.drawString("Loading...", 128, 120);
-      tft.setTextDatum(TL_DATUM);
-      return files[selected];
-    }
-
-    delay(50);
-  }
-}
+extern void setup_controller();
+extern "C" int nofrendo_main(int argc, char* argv[]);
+extern "C" bool vid_preload_rom(const char* path);
+extern "C" int show_menu();
+extern "C" const char* get_selected_game();
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);
-
-  Serial.println("\n\n=== ESP32-S3 NES Emulator v25.0 ===");
-
+  delay(100); 
+  Serial.println("\n\n====================================");
+  Serial.println("Starting NES Emulator Setup");
+  Serial.println("====================================\n");
+ 
   setup_controller();
+  Serial.println("[1/4] Controller initialized.");
+ 
+  Serial.println("[2/4] Mounting SD card...");
+ 
+  SPIClass spiHS(SPI2_HOST);
+  spiHS.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
 
-  tft.init();
-  tft.setRotation(1);
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextSize(2);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
-
-  if (psramFound()) {
-    tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    tft.println("PSRAM OK");
+  if (!SD.begin(SD_CS, spiHS, 20000000)) {
+    Serial.println("     SD Mount failed - ROM won't be accessible");
   } else {
-    tft.setTextColor(TFT_RED, TFT_BLACK);
-    tft.println("ERROR: No PSRAM");
-    while (1) delay(1000);
-  }
-
-  Serial.println("[INIT] SD Card...");
-  SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
-
-  if (!SD.begin(SD_CS, SPI, 10000000)) {
-    if (!SD.begin(SD_CS, SPI, 4000000)) {
-      tft.setTextColor(TFT_RED, TFT_BLACK);
-      tft.println("SD FAIL");
-      while (1) delay(1000);
+    Serial.println("     ✓ SD Card mounted"); 
+    File root = SD.open("/");
+    if (root) {
+      Serial.println("     Files on SD:");
+      File file = root.openNextFile();
+      while (file && file.name()[0] != 0) {
+        Serial.printf("       - %s (%d bytes)\n", file.name(), file.size());
+        file = root.openNextFile();
+      }
+      root.close();
     }
   }
+  delay(200);
+ 
+  Serial.println("[3/4] Initializing TFT display...");
+  delay(100);
 
-  String selectedGame = selectGame();
+  tft.init();
+  delay(100);
+  tft.fillScreen(tft.color565(0, 0, 0));
+  delay(100);
+  Serial.printf("     ✓ TFT ready: %dx%d\n", DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
-  if (selectedGame == "") {
-    tft.setTextColor(TFT_RED, TFT_BLACK);
-    tft.println("NO GAMES FOUND");
-    while (1) delay(1000);
+  Serial.println("[4/4] ROM Loading Configuration");
+ 
+  delay(100);
+  Serial.printf("     Free heap: %u bytes\n", esp_get_free_heap_size());
+  Serial.printf("     Free SPIRAM: %u bytes\n", heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+  Serial.printf("     Total SPIRAM: %u bytes\n", heap_caps_get_total_size(MALLOC_CAP_SPIRAM));
+
+  if (heap_caps_get_total_size(MALLOC_CAP_SPIRAM) == 0) {
+    Serial.println("     WARNING: PSRAM not initialized.");
+    Serial.println("     Set correct board/PSRAM mode in Arduino IDE (Tools menu).");
+  }
+ 
+  Serial.println("\n     ROM preloading DISABLED - emulator will load on demand");
+  Serial.println("     (If emulator crashes, ROM loading is the issue)");
+ 
+  Serial.println("\n====================================");
+  Serial.println("Setup complete - Showing menu");
+  Serial.println("====================================\n");
+  delay(100);
+  Serial.flush();
+ 
+  int selected = show_menu();
+  if (selected < 0) {
+    Serial.println("No game selected!");
+    return;
   }
 
-  gameToLoad = strdup(selectedGame.c_str());
+  const char* rom_file = get_selected_game();
+  Serial.printf("Starting game: %s\n", rom_file);
 
-  if (!vid_preload_rom(gameToLoad)) {
-    tft.setTextColor(TFT_RED, TFT_BLACK);
-    tft.println("LOAD ERROR");
-    while (1) delay(1000);
-  }
-
-  Serial.println("[INIT] Starting Task...");
-
-  xTaskCreatePinnedToCore(
-    emulator_task,
-    "NES_Loop",
-    64 * 1024,
-    NULL,
-    1,
-    &emuTaskHandle,
-    1);
+#if ENABLE_SOUND
+  char* argv[] = {
+    "nes",
+    "-sound",
+    "-volume", "100",
+    "-sample", "16000",
+    (char*)rom_file
+  };
+  nofrendo_main(7, argv);
+#else
+  char* argv[] = {
+    "nes",
+    "-nosound",
+    (char*)rom_file
+  };
+  nofrendo_main(3, argv);
+#endif
 }
 
-void loop() {
-  delay(2000);
+void loop() { 
+  delay(1000);
 }
