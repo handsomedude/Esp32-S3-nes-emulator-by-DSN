@@ -10,8 +10,7 @@ static struct
 {
    int enabled, counter;
 } irq;
-
-/* mapper 40: SMB 2j (hack) */
+ 
 static void map40_init(void)
 {
    mmc_bankrom(8, 0x6000, 6);
@@ -44,16 +43,16 @@ static void map40_write(uint32 address, uint8 value)
 
    switch (range)
    {
-   case 0: /* 0x8000-0x9FFF */
+   case 0: 
       irq.enabled = false;
       irq.counter = (int)MAP40_IRQ_PERIOD;
       break;
 
-   case 1: /* 0xA000-0xBFFF */
+   case 1: 
       irq.enabled = true;
       break;
 
-   case 3: /* 0xE000-0xFFFF */
+   case 3:  
       mmc_bankrom(8, 0xC000, value & 7);
       break;
 
