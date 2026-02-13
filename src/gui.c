@@ -15,8 +15,7 @@
 #include "gui.h"
 #include "gui_elem.h"
 #include "vid_drv.h"
- 
-/* 8-bit GUI color table */
+  
 rgb_t gui_pal[GUI_TOTALCOLORS] =
     {
         {0x00, 0x00, 0x00}, /* black      */
@@ -38,8 +37,7 @@ rgb_t gui_pal[GUI_TOTALCOLORS] =
 #include "pcx.h"
 #include "nesstate.h"
 static bool option_drawsprites = true;
-
-/* save a PCX snapshot */
+ 
 void gui_savesnap(void)
 {
    char filename[PATH_MAX];
@@ -50,24 +48,22 @@ void gui_savesnap(void)
 
 #ifdef NOFRENDO_DOUBLE_FRAMEBUFFER
    if (pcx_write(filename, nes->vidbuf, nes->ppu->curpal))
-#else /* !NOFRENDO_DOUBLE_FRAMEBUFFER */
+#else  
    if (pcx_write(filename, vid_getbuffer(), nes->ppu->curpal))
-#endif /* !NOFRENDO_DOUBLE_FRAMEBUFFER */
+#endif  
 
       return;
 
    gui_sendmsg(GUI_GREEN, "Screen saved to %s", filename);
 }
-
-/* Show/hide sprites (hiding sprites useful for making maps) */
+ 
 void gui_togglesprites(void)
 {
    option_drawsprites ^= true;
    ppu_displaysprites(option_drawsprites);
    gui_sendmsg(GUI_GREEN, "Sprites %s", option_drawsprites ? "displayed" : "hidden");
 }
-
-/* Set the frameskip policy */
+ 
 void gui_togglefs(void)
 {
    nes_t *machine = nes_getcontextptr();
@@ -78,8 +74,7 @@ void gui_togglefs(void)
    else
       gui_sendmsg(GUI_YELLOW, "unthrottled emulation");
 }
-
-/* display rom information */
+ 
 void gui_displayinfo()
 {
    gui_sendmsg(GUI_ORANGE, (char *)rom_getinfo(nes_getcontextptr()->rominfo));
@@ -87,8 +82,8 @@ void gui_displayinfo()
 
 void gui_toggle_chan(int chan)
 {
-#define FILL_CHAR 0x7C  /* ASCII 124 '|' */
-#define BLANK_CHAR 0x7F /* ASCII 127   [delta] */
+#define FILL_CHAR 0x7C   
+#define BLANK_CHAR 0x7F  
    static bool chan_enabled[6] = {true, true, true, true, true, true};
 
    chan_enabled[chan] ^= true;
@@ -114,8 +109,7 @@ void gui_setfilter(int filter_type)
    apu_setfilter(filter_type);
    gui_sendmsg(GUI_ORANGE, "%s filter", types[filter_type]);
    last_filter = filter_type;
-}
-/**************************************************************/
+} 
 
 enum
 {
@@ -130,8 +124,7 @@ enum
    BUTTON_UP,
    BUTTON_DOWN
 };
-
-/* TODO: roll options into a structure */
+ 
 static message_t msg;
 static bool option_showfps = false;
 static bool option_showgui = false;
@@ -139,24 +132,21 @@ static int option_wavetype = GUI_WAVENONE;
 static bool option_showpattern = false;
 static bool option_showoam = false;
 static int pattern_col = 0;
-
-/* timimg variables */
+ 
 static bool gui_fpsupdate = false;
 static int gui_ticks = 0;
 static int gui_fps = 0;
-static int gui_refresh = 60; /* default to 60Hz */
+static int gui_refresh = 60;  
 
 static int mouse_x, mouse_y, mouse_button;
 
 static bitmap_t *gui_surface;
-
-/* Put a pixel on our bitmap- just for GUI use */
+ 
 INLINE void gui_putpixel(int x_pos, int y_pos, uint8 color)
 {
    gui_surface->line[y_pos][x_pos] = color;
 }
-
-/* Line drawing */
+ 
 static void gui_hline(int x_pos, int y_pos, int length, uint8 color)
 {
    while (length--)
@@ -168,8 +158,7 @@ static void gui_vline(int x_pos, int y_pos, int height, uint8 color)
    while (height--)
       gui_putpixel(x_pos, y_pos++, color);
 }
-
-/* Rectangles */
+ 
 static void gui_rect(int x_pos, int y_pos, int width, int height, uint8 color)
 {
    gui_hline(x_pos, y_pos, width, color);
@@ -183,8 +172,7 @@ static void gui_rectfill(int x_pos, int y_pos, int width, int height, uint8 colo
    while (height--)
       gui_hline(x_pos, y_pos++, width, color);
 }
-
-/* Draw the outline of a button */
+ 
 static void gui_buttonrect(int x_pos, int y_pos, int width, int height, bool down)
 {
    uint8 color1, color2;
@@ -205,8 +193,7 @@ static void gui_buttonrect(int x_pos, int y_pos, int width, int height, bool dow
    gui_hline(x_pos, y_pos + height - 1, width, color2);
    gui_vline(x_pos + width - 1, y_pos, height - 1, color2);
 }
-
-/* Text blitting */
+ 
 INLINE void gui_charline(char ch, int x_pos, int y_pos, uint8 color)
 {
    int count = 8;
@@ -223,8 +210,7 @@ static void gui_putchar(uint8 *dat, int height, int x_pos, int y_pos, uint8 colo
    while (height--)
       gui_charline(*dat++, x_pos, y_pos++, color);
 }
-
-/* Return length of text in pixels */
+ 
 static int gui_textlen(char *str, font_t *font)
 {
    int pixels = 0;
@@ -235,8 +221,7 @@ static int gui_textlen(char *str, font_t *font)
 
    return pixels;
 }
-
-/* Simple textout() type function */
+ 
 static int gui_textout(char *str, int x_pos, int y_pos, font_t *font, uint8 color)
 {
    int x_new;
@@ -246,35 +231,29 @@ static int gui_textout(char *str, int x_pos, int y_pos, font_t *font, uint8 colo
    x_new = x_pos;
 
    while (num_chars--)
-   {
-      /* Turn ASCII code into letter */
+   { 
       code = *str++;
       if (code > 0x7F)
          code = 0x7F;
-      code -= 32; /* normalize */
+      code -= 32;  
       gui_putchar(font->character[code].lines, font->height, x_new, y_pos, color);
       x_new += font->character[code].spacing;
    }
-
-   /* Return the length in pixels */
+ 
    return (x_new - x_pos);
 }
-
-/* Draw bar-/button-type text */
+ 
 static int gui_textbar(char *str, int x_pos, int y_pos, font_t *font,
                        uint8 color, uint8 bgcolor, bool buttonstate)
 {
    int width = gui_textlen(str, &small);
-
-   /* Fill the 'button' */
+ 
    gui_buttonrect(x_pos, y_pos, width + 3, font->height + 3, buttonstate);
    gui_rectfill(x_pos + 1, y_pos + 1, width + 1, font->height + 1, bgcolor);
-
-   /* Print the text */
+ 
    return gui_textout(str, x_pos + 2, y_pos + 2, font, color);
 }
-
-/* Draw the mouse pointer */
+ 
 static void gui_drawmouse(void)
 {
    int ythresh, xthresh;
@@ -316,13 +295,12 @@ void gui_tick(int ticks)
       gui_fpsupdate = true;
    }
 }
-
-/* updated in sync with the timer interrupt */
+ 
 static void gui_tickdec(void)
 {
 #ifdef NOFRENDO_DEBUG
    static int hertz_ticks = 0;
-#endif /* NOFRENDO_DEBUG */
+#endif  
    int ticks = gui_ticks;
 
    if (0 == ticks)
@@ -330,17 +308,15 @@ static void gui_tickdec(void)
 
    gui_ticks = 0;
 
-#ifdef NOFRENDO_DEBUG
-   /* Check for corrupt memory block every 10 seconds */
+#ifdef NOFRENDO_DEBUG 
    hertz_ticks += ticks;
    if (hertz_ticks >= (10 * gui_refresh))
    {
       hertz_ticks -= (10 * gui_refresh);
       mem_checkblocks();
    }
-#endif /* NOFRENDO_DEBUG */
-
-   /* TODO: bleh */
+#endif  
+ 
    if (msg.ttl > 0)
    {
       msg.ttl -= ticks;
@@ -348,13 +324,11 @@ static void gui_tickdec(void)
          msg.ttl = 0;
    }
 }
-
-/* Update the FPS display */
+ 
 static void gui_updatefps(void)
 {
    static char fpsbuf[20];
-
-   /* Check to see if we need to do an sprintf or not */
+ 
    if (true == gui_fpsupdate)
    {
       sprintf(fpsbuf, "%4d FPS /%4d%%", gui_fps, (gui_fps * 100) / gui_refresh);
@@ -364,14 +338,12 @@ static void gui_updatefps(void)
 
    gui_textout(fpsbuf, gui_surface->width - 1 - 90, 1, &small, GUI_GREEN);
 }
-
-/* Turn FPS on/off */
+ 
 void gui_togglefps(void)
 {
    option_showfps ^= true;
 }
-
-/* Turn GUI on/off */
+ 
 void gui_togglegui(void)
 {
    option_showgui ^= true;
@@ -386,35 +358,30 @@ void gui_toggleoam(void)
 {
    option_showoam ^= true;
 }
-
-/* TODO: hack! */
+ 
 void gui_togglepattern(void)
 {
    option_showpattern ^= true;
 }
-
-/* TODO: hack! */
+ 
 void gui_decpatterncol(void)
 {
    if (pattern_col && option_showpattern)
       pattern_col--;
 }
-
-/* TODO: hack! */
+ 
 void gui_incpatterncol(void)
 {
    if ((pattern_col < 7) && option_showpattern)
       pattern_col++;
 }
-
-/* Downward-scrolling message display */
+ 
 static void gui_updatemsg(void)
 {
    if (msg.ttl)
       gui_textbar(msg.text, 2, gui_surface->height - 10, &small, msg.color, GUI_DKGRAY, BUTTON_UP);
 }
-
-/* Little thing to display the waveform */
+ 
 static void gui_updatewave(int wave_type)
 {
 #define WAVEDISP_WIDTH 128
@@ -437,17 +404,14 @@ static void gui_updatewave(int wave_type)
    scale = (float)(vis_length / (float)WAVEDISP_WIDTH);
 
    if (NULL == vis_buffer)
-   {
-      /* draw centerline */
+   { 
       gui_hline(xofs, yofs + 0x20, WAVEDISP_WIDTH, GUI_GRAY);
       gui_textbar("no sound", xofs + 40, yofs + 0x20 - 4, &small, GUI_RED, GUI_DKGRAY, BUTTON_UP);
    }
    else if (GUI_WAVELINE == wave_type)
-   {
-      /* draw centerline */
+   { 
       gui_hline(xofs, yofs + 0x20, WAVEDISP_WIDTH, GUI_GRAY);
-
-      /* initial old value */
+ 
       if (16 == vis_bps)
          oldval = 0x40 - (((((uint16 *)vis_buffer)[0] >> 8) ^ 0x80) >> 2);
       else
@@ -474,8 +438,7 @@ static void gui_updatewave(int wave_type)
          gui_vline(xofs + loop, yofs + offset, difference, GUI_GREEN);
          oldval = val;
       }
-   }
-   /* solid wave */
+   } 
    else if (GUI_WAVESOLID == wave_type)
    {
       for (loop = 0; loop < WAVEDISP_WIDTH; loop++)
@@ -499,14 +462,12 @@ static void gui_updatewave(int wave_type)
 }
 
 static void gui_updatepattern(void)
-{
-   /* Pretty it up a bit */
+{ 
    gui_textbar("Pattern Table 0", 0, 0, &small, GUI_GREEN, GUI_DKGRAY, BUTTON_UP);
    gui_textbar("Pattern Table 1", 128, 0, &small, GUI_GREEN, GUI_DKGRAY, BUTTON_UP);
    gui_hline(0, 9, 256, GUI_DKGRAY);
    gui_hline(0, 138, 256, GUI_DKGRAY);
-
-   /* Dump the actual tables */
+ 
    ppu_dumppattern(gui_surface, 0, 0, 10, pattern_col);
    ppu_dumppattern(gui_surface, 1, 128, 10, pattern_col);
 }
@@ -519,8 +480,7 @@ static void gui_updateoam(void)
    gui_textbar("Current OAM", 0, y, &small, GUI_GREEN, GUI_DKGRAY, BUTTON_UP);
    ppu_dumpoam(gui_surface, 0, y + 9);
 }
-
-/* The GUI overlay */
+ 
 void gui_frame(bool draw)
 {
    gui_fps++;
@@ -565,11 +525,11 @@ void gui_sendmsg(int color, char *format, ...)
    nofrendo_log_print("GUI: ");
    nofrendo_log_print(msg.text);
    nofrendo_log_print("\n");
-#endif /* NOFRENDO_DEBUG */
+#endif  
 
    va_end(arg);
 
-   msg.ttl = gui_refresh * 2; /* 2 second delay */
+   msg.ttl = gui_refresh * 2;  
    msg.color = color;
 }
 
@@ -583,7 +543,7 @@ int gui_init(void)
    gui_refresh = 60;
    memset(&msg, 0, sizeof(message_t));
 
-   return 0; /* can't fail */
+   return 0; 
 }
 
 void gui_shutdown(void)
