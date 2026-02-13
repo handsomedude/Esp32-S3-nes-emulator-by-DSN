@@ -9,54 +9,29 @@ static struct
   bool enabled;
   uint32 counter;
 } irq;
-
-/**************************/
-/* Mapper #73: Salamander */
-/**************************/
+ 
 static void map73_init(void)
-{
-  /* Turn off IRQs */
+{ 
   irq.enabled = false;
-  irq.counter = 0x0000;
-
-  /* Done */
+  irq.counter = 0x0000; 
   return;
 }
-
-/****************************************/
-/* Mapper #73 callback for IRQ handling */
-/****************************************/
+ 
 static void map73_hblank(int vblank)
-{
-  /* Counter is M2 based so it doesn't matter whether */
-  /* the PPU is in its VBlank period or not           */
-  UNUSED(vblank);
-
-  /* Increment the counter if it is enabled and check for strike */
+{ 
+  UNUSED(vblank); 
   if (irq.enabled)
-  {
-    /* Is there a constant for cycles per scanline? */
-    /* If so, someone ought to substitute it here   */
-    irq.counter = irq.counter + 114;
-
-    /* Counter triggered on overflow into Q16 */
+  { 
+    irq.counter = irq.counter + 114; 
     if (irq.counter & 0x10000)
-    {
-      /* Clip to sixteen-bit word */
-      irq.counter &= 0xFFFF;
-
-      /* Trigger the IRQ */
-      nes_irq();
-
-      /* Shut off IRQ counter */
+    { 
+      irq.counter &= 0xFFFF; 
+      nes_irq(); 
       irq.enabled = false;
     }
   }
 }
-
-/******************************************/
-/* Mapper #73 write handler ($8000-$FFFF) */
-/******************************************/
+ 
 static void map73_write(uint32 address, uint8 value)
 {
   switch (address & 0xF000)
@@ -87,33 +62,19 @@ static void map73_write(uint32 address, uint8 value)
     mmc_bankrom(16, 0x8000, value);
   default:
     break;
-  }
-
-  /* Done */
+  } 
   return;
 }
-
-/****************************************************/
-/* Shove extra mapper information into a SNSS block */
-/****************************************************/
+ 
 static void map73_setstate(SnssMapperBlock *state)
-{
-  /* TODO: Store SNSS information */
-  UNUSED(state);
-
-  /* Done */
+{ 
+  UNUSED(state); 
   return;
 }
-
-/*****************************************************/
-/* Pull extra mapper information out of a SNSS block */
-/*****************************************************/
+ 
 static void map73_getstate(SnssMapperBlock *state)
-{
-  /* TODO: Retrieve SNSS information */
-  UNUSED(state);
-
-  /* Done */
+{ 
+  UNUSED(state); 
   return;
 }
 
