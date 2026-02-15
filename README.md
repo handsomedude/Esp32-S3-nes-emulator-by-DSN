@@ -120,14 +120,25 @@ Below is the connection diagram for the components.
 | **Start** | Pause Game |
 | **Select** | Game Mode / Menu |
 
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](link-to-issues).
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**Created by [Dsn Industries]** *Don't forget to like and subscribe to the channel for more DIY projects!*
 
 ---
 
-**Created by [Derda CAVGA/Dsn Industries]** *Don't forget to like and subscribe to the channel for more DIY projects!*
+## 🤝 Support
+
+If you found this project helpful, please consider:
+* **Subscribing** to the YouTube Channel.
+* Giving the video a **Like**.
+* Starring this GitHub Repository!
+
+* **YouTube:** [https://www.youtube.com/@DsnIndustries/videos]
+* **Patreon:** [https://www.patreon.com/c/dsnIndustries]
+
+Happy Making!
+
+## Games
+* **Maze Escape:** https://play.google.com/store/apps/details?id=com.DsnMechanics.MazeEscape
+* **Air Hockey:** https://play.google.com/store/apps/details?id=com.DsnMechanics.AirHockey
+* **Click Challenge:** https://play.google.com/store/apps/details?id=com.DsNMechanics.ClickChallenge
+* **Flying Triangels:** https://play.google.com/store/apps/details?id=com.DsnMechanics.Triangle
+* **SkyScrapper:** https://play.google.com/store/apps/details?id=com.DsnMechanics.SkyScraper
