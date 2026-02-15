@@ -11,9 +11,9 @@
 #define SD_MISO 1
 
 // I2S Audio Pins (MAX98357A or similar DAC)
-#define I2S_DO 4   // Data Out - Connect to DIN on MAX98357A
-#define I2S_BCK 5  // Bit Clock - Connect to BCLK on MAX98357A
-#define I2S_WS 6   // Left/Right Clock (Word Select) - Connect to LRC on MAX98357A
+#define I2S_DO 4   // DIN on MAX98357A
+#define I2S_BCK 5  // BCLK on MAX98357A
+#define I2S_WS 6   // LRC on MAX98357A
 
 // TFT Display Pins (ST7789)
 #define HW_TFT_MOSI 11   // Data In
