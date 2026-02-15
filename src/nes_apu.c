@@ -214,11 +214,11 @@ static void shift_register15(int8 *buf, int count)
                                                                                                                                          \
       if (false == apu.rectangle[ch].enabled || 0 == apu.rectangle[ch].vbl_length)                                                       \
          return APU_RECTANGLE_OUTPUT(ch);                                                                                                \
- 
+                                                                                                                                         \
       if (false == apu.rectangle[ch].holdnote)                                                                                           \
          apu.rectangle[ch].vbl_length--;                                                                                                 \
- 
-      apu.rectangle[ch].env_phase -= 4;                                                                                      \
+                                                                                                                                         \
+      apu.rectangle[ch].env_phase -= 4;                                                                                                  \
       while (apu.rectangle[ch].env_phase < 0)                                                                                            \
       {                                                                                                                                  \
          apu.rectangle[ch].env_phase += apu.rectangle[ch].env_delay;                                                                     \
@@ -228,26 +228,26 @@ static void shift_register15(int8 *buf, int count)
          else if (apu.rectangle[ch].env_vol < 0x0F)                                                                                      \
             apu.rectangle[ch].env_vol++;                                                                                                 \
       }                                                                                                                                  \
- 
+                                                                                                                                         \
       if (apu.rectangle[ch].freq < 8 || (false == apu.rectangle[ch].sweep_inc && apu.rectangle[ch].freq > apu.rectangle[ch].freq_limit)) \
          return APU_RECTANGLE_OUTPUT(ch);                                                                                                \
                                                                                                                                          \
       /* frequency sweeping at a rate of (sweep_delay + 1) / 120 secs */                                                                 \
       if (apu.rectangle[ch].sweep_on && apu.rectangle[ch].sweep_shifts)                                                                  \
       {                                                                                                                                  \
-         apu.rectangle[ch].sweep_phase -= 2;                                                                         \
+         apu.rectangle[ch].sweep_phase -= 2;                                                                                             \
          while (apu.rectangle[ch].sweep_phase < 0)                                                                                       \
          {                                                                                                                               \
             apu.rectangle[ch].sweep_phase += apu.rectangle[ch].sweep_delay;                                                              \
                                                                                                                                          \
-            if (apu.rectangle[ch].sweep_inc)                                                                             \
+            if (apu.rectangle[ch].sweep_inc)                                                                                             \
             {                                                                                                                            \
                if (0 == ch)                                                                                                              \
                   apu.rectangle[ch].freq += ~(apu.rectangle[ch].freq >> apu.rectangle[ch].sweep_shifts);                                 \
                else                                                                                                                      \
                   apu.rectangle[ch].freq -= (apu.rectangle[ch].freq >> apu.rectangle[ch].sweep_shifts);                                  \
             }                                                                                                                            \
-            else                                                                                                       \
+            else                                                                                                                         \
             {                                                                                                                            \
                apu.rectangle[ch].freq += (apu.rectangle[ch].freq >> apu.rectangle[ch].sweep_shifts);                                     \
             }                                                                                                                            \
@@ -744,12 +744,12 @@ uint8 apu_read(uint32 address)
 }
 
 #define CLIP_OUTPUT16(out)    \
-   { 
+   {                          \
       if (out > 0x7FFF)       \
          out = 0x7FFF;        \
       else if (out < -0x8000) \
          out = -0x8000;       \
-   }
+   }                          \
 
 void apu_process(void *buffer, int num_samples)
 {
