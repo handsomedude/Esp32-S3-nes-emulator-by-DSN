@@ -4,7 +4,7 @@
 #include <FS.h>
 #include "hw_config.h"
 #include "tft_driver.h"
-#include "boot_logo.h"
+#include "turning.h"
 
 #if ENABLE_SOUND
 #include <driver/i2s.h>
@@ -60,38 +60,38 @@ static uint16_t swap_rb_565(uint16_t color) {
   return (uint16_t)((b << 11) | (g << 5) | r);
 }
 
-static void draw_logo_fade(uint8_t alpha) {
-  static uint16_t line[DSN_LOGO_WIDTH];
+static void draw_magic(uint8_t alpha) {
+  static uint16_t line[hakki_W];
 
-  for (int y = 0; y < DSN_LOGO_HEIGHT; y++) {
-    int row = y * DSN_LOGO_WIDTH;
-    for (int x = 0; x < DSN_LOGO_WIDTH; x++) {
-      uint16_t c = pgm_read_word(&dsnLogo[row + x]);
+  for (int y = 0; y < hakki_H; y++) {
+    int row = y * hakki_W;
+    for (int x = 0; x < hakki_W; x++) {
+      uint16_t c = pgm_read_word(&hakki[row + x]);
       c = swap_rb_565(c);
       line[x] = scale_color_565(c, alpha);
     }
-    tft.pushImage(0, y, DSN_LOGO_WIDTH, 1, line);
+    tft.pushImage(0, y, hakki_W, 1, line);
   }
 }
 
-static void show_boot_logo() {
+static void show_magic() {
   static bool shown = false;
   if (shown) {
     return;
   }
   shown = true;
 
-  const int fade_in_ms = 500;
-  const int hold_ms = 300;
+  const int fade_in_ms = 300;
+  const int hold_ms = 500;
   const int fade_out_ms = 500;
-  const int steps = 20;
+  const int steps = 30;
   const int step_delay_in = fade_in_ms / steps;
   const int step_delay_out = fade_out_ms / steps;
 
   tft.fillScreen(0x0000);
   for (int i = 0; i <= steps; i++) {
     uint8_t alpha = (uint8_t)((i * 255) / steps);
-    draw_logo_fade(alpha);
+    draw_magic(alpha);
     delay(step_delay_in);
   }
 
@@ -99,7 +99,7 @@ static void show_boot_logo() {
 
   for (int i = steps; i >= 0; i--) {
     uint8_t alpha = (uint8_t)((i * 255) / steps);
-    draw_logo_fade(alpha);
+    draw_magic(alpha);
     delay(step_delay_out);
   }
 
@@ -238,7 +238,7 @@ void draw_settings() {
 extern "C" int show_menu() {
   Serial.println("\n[MENU] Starting menu system...");
 
-  show_boot_logo();
+  show_magic();
   
   scan_games();
   Serial.printf("[MENU] Found %d games\n", game_list.count);
