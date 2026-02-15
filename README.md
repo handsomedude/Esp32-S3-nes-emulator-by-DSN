@@ -120,8 +120,6 @@ Below is the connection diagram for the components.
 | **Start** | Pause Game |
 | **Select** | Game Mode / Menu |
 
-**Created by [Dsn Industries]** *Don't forget to like and subscribe to the channel for more DIY projects!*
-
 ---
 
 ## 🤝 Support
