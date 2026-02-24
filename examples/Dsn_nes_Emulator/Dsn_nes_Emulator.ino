@@ -19,7 +19,7 @@ void setup() {
   Serial.begin(115200);
   delay(100); 
   Serial.println("\n\n====================================");
-  Serial.println("Starting NES Emulator Setup");
+  Serial.println("Starting DSN NES Emulator Setup");
   Serial.println("====================================\n");
  
   setup_controller();
