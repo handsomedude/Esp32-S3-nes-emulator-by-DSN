@@ -852,4 +852,3 @@ extern "C" void nofrendo_log_assert(int expr, int line, const char *file, char *
     Serial.printf("ASSERT FAILED: %s:%d %s\n", file ? file : "?", line, msg ? msg : "");
   }
 }
-
