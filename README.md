@@ -99,9 +99,9 @@ Below is the connection diagram for the components.
     git clone [https://github.com/derdacavga/Esp32-S3-nes-emulator-by-DSN.git](https://github.com/derdacavga/Esp32-S3-nes-emulator-by-DSN.git)
     ```
 2.  **Open in IDE:**
-    * Open the project using **VS Code + PlatformIO** (Recommended) or **Arduino IDE**.
+    * Open the project using **Arduino IDE**.
 3.  **Install Libraries:**
-    * Ensure you have installed the necessary libraries (e.g., `Audio`, etc.) listed in `platformio.ini` or `library.properties`.
+    * Ensure you have installed the necessary libraries (e.g., `Audio`, etc.) `library.properties`.
 4.  **Configure:**
     * Check the pin definitions in the code to match your wiring.
 5.  **Flash:**
