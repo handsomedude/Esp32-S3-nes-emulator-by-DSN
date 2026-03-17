@@ -158,7 +158,7 @@ extern "C" int osd_rom_open(const char *path);
 extern "C" int osd_rom_read(void *dst, int len);
 extern "C" void osd_rom_close(void);
  
-#define MAX_GAMES 10
+#define MAX_GAMES 50
 struct {
   char names[MAX_GAMES][32];
   int count;
@@ -251,66 +251,92 @@ extern "C" int show_menu() {
   }
   
   game_list.selected = 0;
+  int top_index = 0; 
   bool in_menu = true;
   unsigned long last_input = 0;
   int last_selected = -1;
+  
   bool needs_full_redraw = true;
+  bool needs_list_redraw = false;
 
-  auto draw_menu_item = [&](int i, bool selected) {
-    int y_pos = 50 + (i * 40);
+  auto draw_menu_item = [&](int screen_idx, int game_idx, bool selected) {
+    int y_pos = 50 + (screen_idx * 40);
     uint16_t bg = selected ? 0xF800 : 0x0000;
     uint16_t fg = 0xFFFF;
+    
+    char display_name[32];
+    strncpy(display_name, game_list.names[game_idx], 31);
+    display_name[31] = '\0';
+    char *dot = strchr(display_name, '.');
+    if (dot) *dot = '\0';
+
     tft.drawFilledRect(0, y_pos - 5, DISPLAY_WIDTH, 35, bg);
-    tft.drawString(20, y_pos, game_list.names[i], fg, bg, 1);
+    tft.drawString(20, y_pos, display_name, fg, bg, 1);
   };
   
   while (in_menu) {
     if (needs_full_redraw) {
       tft.fillScreen(0x0000); 
       tft.drawString(10, 10, "GAME MENU", 0xFFFF, 0x0000, 2);
-      for (int i = 0; i < game_list.count; i++) {
-        draw_menu_item(i, i == game_list.selected);
+      
+      for (int i = 0; i < 4 && (top_index + i) < game_list.count; i++) {
+        draw_menu_item(i, top_index + i, (top_index + i) == game_list.selected);
       }
+      
       tft.drawString(10, DISPLAY_HEIGHT - 40, "UP/DN: Select", 0x07E0, 0x0000, 1);
       tft.drawString(10, DISPLAY_HEIGHT - 20, "A: Play  SEL: Settings", 0x07E0, 0x0000, 1);
-      Serial.printf("[MENU] Displaying game %d\n", game_list.selected);
+      
       last_selected = game_list.selected;
       needs_full_redraw = false;
-    } else if (last_selected != game_list.selected) {
-      if (last_selected >= 0 && last_selected < game_list.count) {
-        draw_menu_item(last_selected, false);
+      needs_list_redraw = false;
+    } 
+    else if (needs_list_redraw) {
+      tft.drawFilledRect(0, 45, DISPLAY_WIDTH, 155, 0x0000); 
+      
+      for (int i = 0; i < 4 && (top_index + i) < game_list.count; i++) {
+        draw_menu_item(i, top_index + i, (top_index + i) == game_list.selected);
       }
-      draw_menu_item(game_list.selected, true);
-      Serial.printf("[MENU] Displaying game %d\n", game_list.selected);
+      
+      last_selected = game_list.selected;
+      needs_list_redraw = false;
+    } 
+    else if (last_selected != game_list.selected) {
+      if (last_selected >= top_index && last_selected < top_index + 4) {
+        draw_menu_item(last_selected - top_index, last_selected, false);
+      }
+      draw_menu_item(game_list.selected - top_index, game_list.selected, true);
       last_selected = game_list.selected;
     }
     
     int hw = nes_get_gamepad_state();
     
-    if ((millis() - last_input) > 200) {
+    if ((millis() - last_input) > 150) {
       if (hw & HW_MASK_UP) {
         if (game_list.selected > 0) {
           game_list.selected--;
-          Serial.println("[MENU] UP - Game changed");
+          if (game_list.selected < top_index) {
+            top_index = game_list.selected;
+            needs_list_redraw = true; 
+          }
           last_input = millis();
         }
       }
       if (hw & HW_MASK_DOWN) {
         if (game_list.selected < game_list.count - 1) {
           game_list.selected++;
-          Serial.println("[MENU] DOWN - Game changed");
+          if (game_list.selected >= top_index + 4) {
+            top_index = game_list.selected - 3;
+            needs_list_redraw = true;
+          }
           last_input = millis();
         }
       }
       if (hw & HW_MASK_A) {
-        Serial.printf("[MENU] A pressed - Starting game %d\n", game_list.selected);
-        tft.fillScreen(0x0000);  // Black
-        delay(500);
+        tft.fillScreen(0x0000);  
+        delay(300);
         return game_list.selected;
       }
       if (hw & HW_MASK_SELECT) {
-        Serial.println("[MENU] SELECT pressed - Settings");
-        
         bool in_settings = true;
         unsigned long settings_input = 0;
         int last_menu_volume = -1;
@@ -336,7 +362,6 @@ extern "C" int show_menu() {
             tft.drawFilledRect(20, 120, DISPLAY_WIDTH - 40, 30, 0x4208); 
             tft.drawFilledRect(20, 120, bar_width, 30, 0xF800);
 
-            Serial.printf("[SETTINGS] Volume: %d%%\n", menu_volume);
             last_menu_volume = menu_volume;
           }
           
@@ -346,35 +371,25 @@ extern "C" int show_menu() {
             if (hw2 & HW_MASK_UP) {
               menu_volume = min(200, menu_volume + 10);
               master_volume = menu_volume;
-              Serial.printf("[SETTINGS] Volume UP: %d%%\n", menu_volume);
               settings_input = millis();
             }
             if (hw2 & HW_MASK_DOWN) {
               menu_volume = max(0, menu_volume - 10);
               master_volume = menu_volume;
-              Serial.printf("[SETTINGS] Volume DOWN: %d%%\n", menu_volume);
               settings_input = millis();
             }
-            if (hw2 & HW_MASK_A) {
-              Serial.println("[SETTINGS] Saved");
-              in_settings = false;
-            }
-            if (hw2 & HW_MASK_B) {
-              Serial.println("[SETTINGS] Cancelled");
+            if (hw2 & HW_MASK_A || hw2 & HW_MASK_B) {
               in_settings = false;
             }
           }
-          
           delay(50);
         }
         last_input = millis();
-        needs_full_redraw = true;
+        needs_full_redraw = true; 
       }
     }
-    
-    delay(50);
+    delay(20);
   }
-  
   return -1;
 }
 
