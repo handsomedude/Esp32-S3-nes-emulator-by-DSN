@@ -17,10 +17,10 @@
 #define TFT_INVON     0x21
 #define TFT_INVOFF    0x20
  
-#define DISPLAY_WIDTH  280
+#define DISPLAY_WIDTH  320
 #define DISPLAY_HEIGHT 240
  
-#define ST7789_COL_OFFSET 20
+#define ST7789_COL_OFFSET 0
  
 #define TFT_BLACK   0x0000
 #define TFT_WHITE   0xFFFF
@@ -127,13 +127,15 @@ static const uint8_t font_5x7[] PROGMEM = {
     0x00, 0x00, 0x00, 0x00, 0x00  // 0x7F DEL
 };
 
+#include "hw_config.h"
+
 class TFTDriver {
 private:
-    static constexpr int TFT_DC = 15;
-    static constexpr int TFT_RST = 9;
-    static constexpr int TFT_CS = 10;
-    static constexpr int TFT_SCK = 12;
-    static constexpr int TFT_MOSI = 11;
+    static constexpr int TFT_DC = HW_TFT_DC;
+    static constexpr int TFT_RST = HW_TFT_RST;
+    static constexpr int TFT_CS = HW_TFT_CS;
+    static constexpr int TFT_SCK = HW_TFT_SCK;
+    static constexpr int TFT_MOSI = HW_TFT_MOSI;
     static constexpr int TFT_MISO = -1;
     
     void spi_write_cmd(uint8_t cmd) {
@@ -169,7 +171,7 @@ private:
         digitalWrite(TFT_DC, HIGH);
          
         SPI.begin(TFT_SCK, TFT_MISO, TFT_MOSI, TFT_CS);
-        SPI.setFrequency(80000000);
+        SPI.setFrequency(40000000);
         SPI.setDataMode(SPI_MODE0);
         SPI.setBitOrder(MSBFIRST);
         
@@ -191,7 +193,11 @@ private:
         delay(5);
         
         spi_write_cmd(TFT_MADCTL);
+#ifdef HW_TFT_MADCTL
+        spi_write_byte(HW_TFT_MADCTL);
+#else
         spi_write_byte(0x60);  // Landscape: rotate 90°
+#endif
         delay(5);
         
         spi_write_cmd(TFT_CASET);
@@ -204,7 +210,7 @@ private:
         spi_write_cmd(TFT_DISPON);
         delay(50);
 
-        spi_write_cmd(TFT_INVON);
+        spi_write_cmd(TFT_INVOFF);
         delay(10);
         
     }
@@ -357,7 +363,8 @@ private:
         }
 
         static uint16_t color565(uint8_t r, uint8_t g, uint8_t b) {
-        return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+        // BGR565 format for ST7789 (blue and red channels swapped)
+        return ((b & 0xF8) << 8) | ((g & 0xFC) << 3) | (r >> 3);
         }
    };
 #endif
